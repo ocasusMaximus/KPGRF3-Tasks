@@ -114,10 +114,10 @@ public class Renderer extends AbstractRenderer {
         glUniformMatrix4fv(projectionLocation, false, projection.floatArray());
 
         textureMosaic.bind(shaderProgramMain, "textureMosaic", 0);
-
-        glUniform1f(typeLocation, 0f);
-        buffersMain.draw(GL_TRIANGLES, shaderProgramMain);
-        glUniform1f(typeLocation, 1f);
+//
+//        glUniform1f(typeLocation, 0f);
+//        buffersMain.draw(GL_TRIANGLES, shaderProgramMain);
+        glUniform1f(typeLocation, 2f);
         buffersMain.draw(GL_TRIANGLES, shaderProgramMain);
     }
 
@@ -154,8 +154,58 @@ public class Renderer extends AbstractRenderer {
                 oldMy = yPos[0];
                 mousePressed = action == GLFW_PRESS;
             }
+            if (button == GLFW_MOUSE_BUTTON_RIGHT) {
+//                dx = (float) x - ox;
+//                dy = (float) y - oy;
+//                ox = (float) x;
+//                oy = (float) y;
+//                zenit -= dy / width * 180;
+//                if (zenit > 90)
+//                    zenit = 90;
+//                if (zenit <= -90)
+//                    zenit = -90;
+//                azimut += dx / height * 180;
+//                azimut = azimut % 360;
+//                camera.setAzimuth(Math.toRadians(azimut));
+//                camera.setZenith(Math.toRadians(zenit));
+//                dx = 0;
+//                dy = 0;
+//                mousePressed = action == GLFW_PRESS;
+            }
         }
     };
+    private final GLFWKeyCallback setKeyFallback = new GLFWKeyCallback() {
+        @Override
+        public void invoke(long window, int key, int scancode, int action, int mods) {
+            if (key == GLFW_KEY_ESCAPE && action == GLFW_RELEASE) {
+                // We will detect this in our rendering loop
+                glfwSetWindowShouldClose(window, true);
+            }
+
+            if (action == GLFW_PRESS || action == GLFW_REPEAT) {
+                switch (key) {
+                    case GLFW_KEY_W:
+                        camera = camera.forward(1);
+                        break;
+                    case GLFW_KEY_D:
+                        camera = camera.right(1);
+                        break;
+                    case GLFW_KEY_S:
+                        camera = camera.backward(1);
+                        break;
+                    case GLFW_KEY_A:
+                        camera = camera.left(1);
+                        break;
+                }
+            }
+        }
+    };
+
+    @Override
+    public GLFWKeyCallback getKeyCallback() {
+        return setKeyFallback;
+    }
+
 
     @Override
     public GLFWCursorPosCallback getCursorCallback() {
