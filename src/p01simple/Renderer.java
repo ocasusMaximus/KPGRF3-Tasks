@@ -7,6 +7,7 @@ import transforms.Camera;
 import transforms.Mat4PerspRH;
 import transforms.Vec3D;
 
+import java.awt.*;
 import java.io.IOException;
 
 import static org.lwjgl.glfw.GLFW.*;
@@ -26,13 +27,14 @@ public class Renderer extends AbstractRenderer {
     private int viewLocation, projectionLocation, typeLocation;
     private Camera camera;
     private Mat4PerspRH projection;
-    private OGLTexture2D textureMosaic;
+    private OGLTexture2D textureForObjects;
     private OGLBuffers buffersPost;
 
     private boolean mousePressed = false;
     private double oldMx, oldMy;
     private OGLRenderTarget renderTarget;
     private OGLTexture2D.Viewer viewer;
+    private float type = 0;
 
     @Override
     public void init() {
@@ -41,7 +43,9 @@ public class Renderer extends AbstractRenderer {
         OGLUtils.printJAVAparameters();
         OGLUtils.shaderCheck();
 
-        glClearColor(0.1f, 0.1f, 0.1f, 1f);
+//        glClearColor(Color.gray.getRed(),Color.gray.getGreen(),Color.gray.getBlue(),0f);
+
+        glClearColor(0.211f, 0.211f, 0.211f, 1f);
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
         shaderProgramMain = ShaderUtils.loadProgram("/main");
@@ -80,7 +84,7 @@ public class Renderer extends AbstractRenderer {
         renderTarget = new OGLRenderTarget(1024, 1024);
 
         try {
-            textureMosaic = new OGLTexture2D("./mosaic.jpg");
+            textureForObjects = new OGLTexture2D("./sky.jpg");
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -98,9 +102,13 @@ public class Renderer extends AbstractRenderer {
         renderPostProcessing();
 
         glDisable(GL_DEPTH_TEST);
-        viewer.view(textureMosaic, -1, -1, 0.5);
+        viewer.view(textureForObjects, -1, -1, 0.5);
         viewer.view(renderTarget.getColorTexture(), -1, -0.5, 0.5);
         viewer.view(renderTarget.getDepthTexture(), -1, 0, 0.5);
+        textRenderer.addStr2D( 3, 15, "KPGRF3 TASK 1");
+        textRenderer.addStr2D( 3, 30, "JAN ZAHRADNÍK");
+        textRenderer.addStr2D( 3, 45, "FIM UHK 2021");
+        textRenderer.addStr2D( width - 390, 15, "Controls: [WASD] Movement, [LMB] View rotation, [O,P] Change models");
         textRenderer.addStr2D(width - 90, height - 3, " (c) PGRF UHK");
     }
 
@@ -113,11 +121,11 @@ public class Renderer extends AbstractRenderer {
         glUniformMatrix4fv(viewLocation, false, camera.getViewMatrix().floatArray());
         glUniformMatrix4fv(projectionLocation, false, projection.floatArray());
 
-        textureMosaic.bind(shaderProgramMain, "textureMosaic", 0);
+        textureForObjects.bind(shaderProgramMain, "textureForObjects", 0);
 //
 //        glUniform1f(typeLocation, 0f);
 //        buffersMain.draw(GL_TRIANGLES, shaderProgramMain);
-        glUniform1f(typeLocation, 2f);
+        glUniform1f(typeLocation, type);
         buffersMain.draw(GL_TRIANGLES, shaderProgramMain);
     }
 
@@ -196,6 +204,13 @@ public class Renderer extends AbstractRenderer {
                     case GLFW_KEY_A:
                         camera = camera.left(1);
                         break;
+                    case GLFW_KEY_O:
+                       type += 1;
+                        break;
+                    case GLFW_KEY_P:
+                        type -= 1;
+                        break;
+
                 }
             }
         }
