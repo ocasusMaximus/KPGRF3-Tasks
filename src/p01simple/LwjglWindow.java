@@ -1,14 +1,26 @@
 package p01simple;
 
 import org.lwjgl.glfw.GLFWErrorCallback;
+import org.lwjgl.glfw.GLFWImage;
 import org.lwjgl.glfw.GLFWVidMode;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GLUtil;
 import org.lwjgl.system.Configuration;
 import org.lwjgl.system.MemoryStack;
 
+import javax.imageio.IIOImage;
+import javax.imageio.ImageIO;
+import javax.imageio.stream.IIOByteBuffer;
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.awt.image.DataBufferByte;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 
+import static org.lwjgl.BufferUtils.createByteBuffer;
 import static org.lwjgl.glfw.Callbacks.glfwFreeCallbacks;
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.system.MemoryStack.stackPush;
@@ -35,15 +47,15 @@ public class LwjglWindow {
         }
     }
 
-    public LwjglWindow(AbstractRenderer renderer) {
+    public LwjglWindow(AbstractRenderer renderer) throws IOException {
         this(WIDTH, HEIGHT, renderer, false);
     }
 
-    public LwjglWindow(AbstractRenderer renderer, boolean debug) {
+    public LwjglWindow(AbstractRenderer renderer, boolean debug) throws IOException {
         this(WIDTH, HEIGHT, renderer, debug);
     }
 
-    public LwjglWindow(int width, int height, AbstractRenderer renderer, boolean debug) {
+    public LwjglWindow(int width, int height, AbstractRenderer renderer, boolean debug) throws IOException {
         this.renderer = renderer;
         DEBUG = debug;
         WIDTH = width;
@@ -54,7 +66,7 @@ public class LwjglWindow {
         run();
     }
 
-    private void run() {
+    private void run() throws IOException {
         init();
         loop();
         renderer.dispose();
@@ -68,7 +80,7 @@ public class LwjglWindow {
         glfwSetErrorCallback(null).free();
     }
 
-    private void init() {
+    private void init() throws IOException {
         // Setup an error callback. The default implementation
         // will print the error message in System.err.
         GLFWErrorCallback.createPrint(System.err).set();
@@ -83,10 +95,24 @@ public class LwjglWindow {
         glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE); // the window will stay hidden after creation
         glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE); // the window will be resizable
 
-        String text = renderer.getClass().getName();
-        text = text.substring(0, text.lastIndexOf('.'));
+//        String text = renderer.getClass().getName();
+        String text = "KPGRF3 Task 1";
+//        text = text.substring(0, text.lastIndexOf('.'));
         // Create the window
         window = glfwCreateWindow(WIDTH, HEIGHT, text, NULL, NULL);
+
+        ClassLoader classLoader = getClass().getClassLoader();
+
+//        Image icon = Importer.extractImageFromImagePath(classLoader.getResource("icon.png").getFile());
+//        assert icon != null;
+//        GLFWImage.Buffer gb = GLFWImage.malloc(icon.getHeight()*icon.getWidth()*4);
+//        byte[] iconData = ((DataBufferByte) icon.getRaster().getDataBuffer()).getData();
+//        ByteBuffer ib = createByteBuffer(iconData.length);
+//        GLFWImage iconGI = GLFWImage.create().set(icon.getWidth(), icon.getHeight(), ib);
+//        gb.put(0, iconGI);
+
+
+//        glfwSetWindowIcon(window, gb);
         if (window == NULL) {
             throw new RuntimeException("Failed to create the GLFW window");
         }

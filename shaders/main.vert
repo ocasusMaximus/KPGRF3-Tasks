@@ -8,10 +8,13 @@ uniform float type;
 uniform float time;
 
 
+uniform vec3 lightPosition;
+uniform vec3 eyePosition;
 uniform float colorType;
 out vec2 texCoord;
 
 out vec3 aPosition;
+out vec3 aNormal;
 
 const float PI = 3.1415;
 
@@ -27,6 +30,13 @@ vec3 getSphere(vec2 vec) {
     float z = 0.5 * r * sin(ze);
     return vec3(x, y, z);
 }
+vec3 getSphereNormal(vec2 vec) {
+    vec3 u = getSphere(vec + vec2(0.001, 0)) - getSphere(vec - vec2(0.001, 0));
+    vec3 v = getSphere(vec + vec2(0, 0.001)) - getSphere(vec - vec2(0, 0.001));
+
+    return cross(u, v);
+}
+
 
 //sferic
 vec3 getDonut(vec2 vec) {
@@ -40,19 +50,26 @@ vec3 getDonut(vec2 vec) {
     float z = r*sin(v);
     return vec3(x, y, z);
 }
+vec3 getDonutNormal(vec2 vec) {
+    vec3 u = getDonut(vec + vec2(0.001, 0)) - getDonut(vec - vec2(0.001, 0));
+    vec3 v = getDonut(vec + vec2(0, 0.001)) - getDonut(vec - vec2(0, 0.001));
 
-
-//sferic
-vec3 getSombrero(vec2 inPos) {
-    float s = PI * 0.5 - PI * inPos.x *2;
-    float t = 2 * PI * inPos.y;
-
-    float x =  t*cos(s);
-    float y =  t*sin(s);
-    float z = 2*sin(t)/2;
-
-    return vec3(x, y, z);
+    return cross(u, v);
 }
+
+
+
+////sferic
+//vec3 getSombrero(vec2 inPos) {
+//    float s = PI * 0.5 - PI * inPos.x *2;
+//    float t = 2 * PI * inPos.y;
+//
+//    float x =  t*cos(s);
+//    float y =  t*sin(s);
+//    float z = 2*sin(t)/2;
+//
+//    return vec3(x, y, z);
+//}
 
 //cylinder
 vec3 getFunnel(vec2 vec) {
@@ -66,6 +83,14 @@ vec3 getFunnel(vec2 vec) {
     return vec3(x, y, z);
 }
 
+vec3 getFunnelNormal(vec2 vec) {
+    vec3 u = getFunnel(vec + vec2(0.001, 0)) - getFunnel(vec - vec2(0.001, 0));
+    vec3 v = getFunnel(vec + vec2(0, 0.001)) - getFunnel(vec - vec2(0, 0.001));
+
+    return cross(u, v);
+}
+
+
 //cylinder
 vec3 getCylinder(vec2 vec) {
     float s = PI * 0.1 - PI * vec.x;
@@ -77,6 +102,14 @@ vec3 getCylinder(vec2 vec) {
 
     return vec3(x, y, z);
 }
+vec3 getCylinderNormal(vec2 vec) {
+    vec3 u = getCylinder(vec + vec2(0.001, 0)) - getCylinder(vec - vec2(0.001, 0));
+    vec3 v = getCylinder(vec + vec2(0, 0.001)) - getCylinder(vec - vec2(0, 0.001));
+
+    return cross(u, v);
+}
+
+
 //kartez
 float getPlot(vec2 vec) {
     return 0.5 * cos(sqrt(20 * vec.x * vec.x + 20 * vec.y * vec.y));
@@ -94,6 +127,8 @@ float getHyperbolic(vec2 vec) {
 }
 
 
+
+
 //kartez
 vec3 getBananaPeel(vec2 vec) {
 
@@ -104,6 +139,22 @@ vec3 getBananaPeel(vec2 vec) {
     return vec3(x, y, z);
 }
 
+vec3 getBananaPeelNormal(vec2 vec) {
+
+    vec3 u = getBananaPeel(vec + vec2(0.001, 0)) - getBananaPeel(vec - vec2(0.001, 0));
+    vec3 v = getBananaPeel(vec + vec2(0, 0.001)) - getBananaPeel(vec - vec2(0, 0.001));
+
+    return cross(u, v);
+}
+
+vec3 getPlane(vec2 vec) {
+    return vec3(vec * 2.5, -1);
+}
+vec3 getPlaneNormal(vec2 vec) {
+    vec3 u = getPlane(vec + vec2(0.001, 0)) - getPlane(vec - vec2(0.001, 0));
+    vec3 v = getPlane(vec + vec2(0, 0.001)) - getPlane(vec - vec2(0, 0.001));
+    return cross(u, v);
+}
 
 
 
@@ -117,8 +168,11 @@ void main() {
 
 
     vec3 finalPosition;
-    //TODO: zkusit se podivat jestli se tohle neda nejak porefaktorovat aby nesel mimo ty cisla
+    vec3 normal;
+    //TODO: dodelat normal pro vsechny zobrazovane telesa
     if (type == 0) {
+        normal = getBananaPeelNormal(position);
+
         finalPosition = getBananaPeel(position);
     }
     if (type == 1) {
@@ -132,19 +186,24 @@ void main() {
         finalPosition = vec3(position, getArc(position));
     }
     if (type == 4){
+        normal = getDonutNormal(position);
         position.y = cos(position.y + time);
         finalPosition = getDonut(position);
     }
     if (type == 5){
+        normal = getSphereNormal(position);
         finalPosition = getSphere(position);
     }
     if (type == 6){
+        normal = getFunnelNormal(position);
         finalPosition = getFunnel(position);
     }
     if (type == 7){
+        normal = getCylinderNormal(position);
         finalPosition = getCylinder(position);
     }
     aPosition = finalPosition;
+    aNormal = normal;
     vec4 pos4 = vec4(finalPosition, 1.0);
     gl_Position = projection * view *  model * pos4;
 

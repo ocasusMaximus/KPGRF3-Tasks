@@ -22,7 +22,7 @@ public class Renderer extends AbstractRenderer {
 
     private int shaderProgramMain, shaderProgramPost;
     private OGLBuffers buffersMain;
-    private int viewLocation, projectionLocation, typeLocation;
+    private int viewLocation, projectionLocation, typeLocation, modelLocation, locLightPosition, locEyePosition;
     private Camera camera;
     private Mat4 projection;
     private OGLTexture2D textureForObjects;
@@ -42,9 +42,10 @@ public class Renderer extends AbstractRenderer {
     Mat4 model;
     Mat4 rotation;
     Mat4 translation;
-    private int modelLocation;
+    Vec3D lightPos;
     float colorType = 0;
     int colorTypeLoc;
+    Vec3D eyePosition;
 
     @Override
     public void init() {
@@ -62,8 +63,10 @@ public class Renderer extends AbstractRenderer {
         projectionLocation = glGetUniformLocation(shaderProgramMain, "projection");
         typeLocation = glGetUniformLocation(shaderProgramMain, "type");
         modelLocation = glGetUniformLocation(shaderProgramMain, "model");
+        projectionLocation = glGetUniformLocation(shaderProgramMain, "projection");
         colorTypeLoc = glGetUniformLocation(shaderProgramMain, "colorType");
-
+        locLightPosition = glGetUniformLocation(shaderProgramMain, "lightPosition");
+        locEyePosition = glGetUniformLocation(shaderProgramMain, "eyePosition");
         locTime = glGetUniformLocation(shaderProgramMain, "time");
 
         shaderProgramPost = ShaderUtils.loadProgram("/post");
@@ -72,7 +75,9 @@ public class Renderer extends AbstractRenderer {
                 .withPosition(new Vec3D(3, 3, 2))
                 .withAzimuth(5 / 4f * Math.PI)
                 .withZenith(-1 / 5f * Math.PI);
-
+        //TODO: poslat do .frag jako uniform hodnotu to je E ve vzorecku
+        eyePosition = camera.getEye();
+        lightPos  = new Vec3D(5, 4, 3);
         projection = new Mat4PerspRH(
                 Math.PI / 3,
                 height / (float) width,
@@ -139,6 +144,8 @@ public class Renderer extends AbstractRenderer {
 
         glUniformMatrix4fv(viewLocation, false, camera.getViewMatrix().floatArray());
         glUniformMatrix4fv(projectionLocation, false, projection.floatArray());
+        glUniform3fv(locLightPosition, ToFloatArray.convert(lightPos));
+        glUniform3fv(locEyePosition, ToFloatArray.convert(lightPos));
 
         glUniformMatrix4fv(modelLocation, false, model.floatArray());
 
@@ -148,10 +155,10 @@ public class Renderer extends AbstractRenderer {
 //        buffersMain.draw(GL_TRIANGLES, shaderProgramMain);
         glUniform1f(typeLocation, type);
         buffersMain.draw(GL_TRIANGLES, shaderProgramMain);
-
         glUniform1f(colorTypeLoc, colorType);
         time += 0.01;
         glUniform1f(locTime, time);
+
 //        glUniformMatrix4fv(typeLocation,1,GL_FALSE,(const GLfloat*) mvp);
     }
 
@@ -183,18 +190,19 @@ public class Renderer extends AbstractRenderer {
                     //TODO: neotaci se kolem sve osy pri translaci se to nevydari
                     double rotX = (oldMx - x) / 200.0;
                     double rotY = (oldMy - y) / 200.0;
-                    rotation = new Mat4RotXYZ(rotX, 0, rotY);
-                    translation = new Mat4Identity();
-                    model = model.mul(rotation).mul(translation);
+                    rotation = rotation.mul(new Mat4RotXYZ(rotX, 0, rotY));
+//                    translation = new Mat4Identity();.mul(translation);
+                    model = rotation.mul(translation);
                     oldMx = x;
                     oldMy = y;
                 } else if (button == GLFW_MOUSE_BUTTON_4) {
                     double movX = (oldMx - x) / 50;
                     double movY = (oldMy - y) / 50;
-                    translation = new Mat4Transl(movX, movY, 0);
-                    rotation = new Mat4Identity();
+                    translation = translation.mul(new Mat4Transl(movX, movY, 0));
+//                    rotation = new Mat4Identity();
                     //translace
-                    model = model.mul(translation).mul(rotation);
+//                    model = model.mul(translation).mul(rotation);
+                    model = rotation.mul(translation);
                     oldMx = x;
                     oldMy = y;
 
@@ -241,10 +249,10 @@ public class Renderer extends AbstractRenderer {
                         camera = camera.left(1);
                         break;
                     case GLFW_KEY_O:
-                        type += 1;
+                        if (type < 7) type += 1;
                         break;
                     case GLFW_KEY_P:
-                        type -= 1;
+                        if (type > 0) type -= 1;
                         break;
                     case GLFW_KEY_Q:
                         //zmenit na persp
@@ -261,10 +269,10 @@ public class Renderer extends AbstractRenderer {
                         projection = new Mat4OrthoRH(2.5, 2.5, 0.1, 20);
                         break;
                     case GLFW_KEY_K:
-                        colorType -= 1;
+                        if (colorType > 0) colorType -= 1;
                         break;
                     case GLFW_KEY_L:
-                        colorType += 1;
+                        if (colorType < 4) colorType += 1;
                         break;
 
                 }
