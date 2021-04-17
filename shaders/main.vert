@@ -15,6 +15,8 @@ out vec2 texCoord;
 
 out vec3 aPosition;
 out vec3 aNormal;
+out vec3 lightVec;
+out vec3 eyeVec;
 
 const float PI = 3.1415;
 
@@ -56,7 +58,6 @@ vec3 getDonutNormal(vec2 vec) {
 
     return cross(u, v);
 }
-
 
 
 ////sferic
@@ -111,22 +112,41 @@ vec3 getCylinderNormal(vec2 vec) {
 
 
 //kartez
-float getPlot(vec2 vec) {
-    return 0.5 * cos(sqrt(20 * vec.x * vec.x + 20 * vec.y * vec.y));
+vec3 getPlot(vec2 vec) {
+    return vec3(vec.x,vec.y,0.5 * cos(sqrt(20 * vec.x * vec.x + 20 * vec.y * vec.y)));
 }
+vec3 getPlotNormal(vec2 vec) {
+    vec3 u = getPlot(vec + vec2(0.001, 0)) - getPlot(vec - vec2(0.001, 0));
+    vec3 v = getPlot(vec + vec2(0, 0.001)) - getPlot(vec - vec2(0, 0.001));
+    return cross(u, v);
+
+}
+
 //kartez
-float getArc(vec2 vec) {
-    return 0.5 * cos(sqrt(vec.x * vec.x +  vec.y * vec.y));
+vec3 getArc(vec2 vec) {
+    float position = cos(vec.x + time);
+    return vec3(position, vec.y, 0.5 * cos(sqrt(vec.x * vec.x +  vec.y * vec.y)));
+}
+vec3 getArcNormal(vec2 vec) {
+    vec3 u = getArc(vec + vec2(0.001, 0)) - getArc(vec - vec2(0.001, 0));
+    vec3 v = getArc(vec + vec2(0, 0.001)) - getArc(vec - vec2(0, 0.001));
+    return cross(u, v);
+
 }
 
 
+
 //kartez
-float getHyperbolic(vec2 vec) {
+vec3 getButterfly(vec2 vec) {
     //    return 0.5 * cos(sqrt(20 * vec.x * vec.x + 20 * vec.y * vec.y));
-    return vec.x*vec.y;
+    return vec3(cos(vec.x),vec.y,vec.x*vec.y);
 }
+vec3 getButterflyNormal(vec2 vec) {
+    vec3 u = getButterfly(vec + vec2(0.001, 0)) - getButterfly(vec - vec2(0.001, 0));
+    vec3 v = getButterfly(vec + vec2(0, 0.001)) - getButterfly(vec - vec2(0, 0.001));
 
-
+    return cross(u, v);
+}
 
 
 //kartez
@@ -169,21 +189,22 @@ void main() {
 
     vec3 finalPosition;
     vec3 normal;
-    //TODO: dodelat normal pro vsechny zobrazovane telesa
     if (type == 0) {
         normal = getBananaPeelNormal(position);
-
         finalPosition = getBananaPeel(position);
     }
     if (type == 1) {
-        finalPosition = vec3(position, getPlot(position));
+        normal = getPlotNormal(position);
+        finalPosition = getPlot(position);
     }
     if (type == 2){
-        finalPosition = vec3(position, getHyperbolic(position));
+        normal = getButterflyNormal(position);
+        finalPosition =  getButterfly(position);
     }
     if (type == 3){
-        position.x = cos(position.x + time);
-        finalPosition = vec3(position, getArc(position));
+        normal = getArcNormal(position);
+        finalPosition =  getArc(position);
+
     }
     if (type == 4){
         normal = getDonutNormal(position);
@@ -202,8 +223,18 @@ void main() {
         normal = getCylinderNormal(position);
         finalPosition = getCylinder(position);
     }
+    //TODO: dodelat zobrazeni polohy svetla - udelat kouli a
+//    finalPosition = getLightSphere();
     aPosition = finalPosition;
     aNormal = normal;
+    lightVec = normalize(lightPosition - finalPosition);
+    //TODO: Reflektorovy zdroj - lightVec je ld z prednasky shaders
+    //TODO:spotCutoff bude kolem 1 napr 0.99 ale ne > 1
+    eyeVec = normalize(eyePosition - finalPosition);
+
+    //TODO: pridat dalsi kameru kvuli modifikaci polohy svetla, aby svetlo jezdilo sem a tam
+
+
     vec4 pos4 = vec4(finalPosition, 1.0);
     gl_Position = projection * view *  model * pos4;
 

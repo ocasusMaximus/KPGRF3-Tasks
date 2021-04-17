@@ -77,7 +77,8 @@ public class Renderer extends AbstractRenderer {
                 .withZenith(-1 / 5f * Math.PI);
         //TODO: poslat do .frag jako uniform hodnotu to je E ve vzorecku
         eyePosition = camera.getEye();
-        lightPos  = new Vec3D(5, 4, 3);
+        //TODO: grid ktery se ohne do koule ve vertexshaderu, predat color
+        lightPos  = new Vec3D(1, 3, 3);
         projection = new Mat4PerspRH(
                 Math.PI / 3,
                 height / (float) width,
@@ -154,10 +155,13 @@ public class Renderer extends AbstractRenderer {
 //        glUniform1f(typeLocation, 0f);
 //        buffersMain.draw(GL_TRIANGLES, shaderProgramMain);
         glUniform1f(typeLocation, type);
+        //TODO: mohu zavolat znova a vykresli mi dalsi dokud nedam clear
         buffersMain.draw(GL_TRIANGLES, shaderProgramMain);
         glUniform1f(colorTypeLoc, colorType);
+//        model
         time += 0.01;
         glUniform1f(locTime, time);
+        //TODO: reflektorovy zdroj svetla spotDirection =-lightPosition;
 
 //        glUniformMatrix4fv(typeLocation,1,GL_FALSE,(const GLfloat*) mvp);
     }
