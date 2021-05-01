@@ -28,8 +28,8 @@ vec3 getSphere(vec2 vec) {
     float r = 1.0;
 
     float x = r * cos(az) * cos(ze);
-    float y = 2 * r * sin(az) * cos(ze);
-    float z = 0.5 * r * sin(ze);
+    float y =  r * sin(az) * cos(ze);
+    float z =  r * sin(ze);
     return vec3(x, y, z);
 }
 vec3 getSphereNormal(vec2 vec) {
@@ -208,7 +208,7 @@ void main() {
     }
     if (type == 4){
         normal = getDonutNormal(position);
-        position.y = cos(position.y + time);
+        position.y = sin(position.y + time);
         finalPosition = getDonut(position);
     }
     if (type == 5){
@@ -235,7 +235,9 @@ void main() {
     //TODO: pridat dalsi kameru kvuli modifikaci polohy svetla, aby svetlo jezdilo sem a tam
 
 
+
     vec4 pos4 = vec4(finalPosition, 1.0);
     gl_Position = projection * view *  model * pos4;
+
 
 } 

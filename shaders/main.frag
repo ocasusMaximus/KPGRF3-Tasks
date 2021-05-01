@@ -24,7 +24,7 @@ void main() {
 
     //    float nDotH = pow(max(0,dot(aNormal,halfVec)),16);
 
-    vec4 diffuse = vec4(nDotL*vec3(0.6), 1);
+    vec4 diffuse = vec4(nDotL*vec3(1.5), 1);
     vec4 spec = vec4(nDotH*vec3(0.6), 1);
     vec4 finalColor = ambient  + spec + diffuse;
     if (colorType == 0){
@@ -38,7 +38,7 @@ void main() {
         outColor = vec4(aPosition, 1.0);
     }
     if (colorType == 3){
-        outColor = finalColor;//* textureColor;
+        outColor = finalColor * textureColor;
         //        outColor = spec;
     }
     if (colorType == 4){

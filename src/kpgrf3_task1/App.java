@@ -1,4 +1,4 @@
-package p01simple;
+package kpgrf3_task1;
 
 import java.io.IOException;
 

@@ -1,4 +1,4 @@
-package p01simple;
+package kpgrf3_task1;
 //package lvl2advanced.p01gui.p01simple;
 
 import lwjglutils.*;
@@ -24,6 +24,7 @@ public class Renderer extends AbstractRenderer {
     private OGLBuffers buffersMain;
     private int viewLocation, projectionLocation, typeLocation, modelLocation, locLightPosition, locEyePosition;
     private Camera camera;
+    private Camera camera2;
     private Mat4 projection;
     private OGLTexture2D textureForObjects;
     private OGLBuffers buffersPost;
@@ -33,6 +34,7 @@ public class Renderer extends AbstractRenderer {
     private OGLRenderTarget renderTarget;
     private OGLTexture2D.Viewer viewer;
     private float type = 0;
+    boolean cameraType = true;
     private int button;
 
     int locTime;
@@ -46,6 +48,12 @@ public class Renderer extends AbstractRenderer {
     float colorType = 0;
     int colorTypeLoc;
     Vec3D eyePosition;
+     int locHeight;
+    boolean polygonMode = true;
+    int shakeObjects;
+    private int shake;
+    private int locTimePostProc;
+
 
     @Override
     public void init() {
@@ -69,15 +77,30 @@ public class Renderer extends AbstractRenderer {
         locEyePosition = glGetUniformLocation(shaderProgramMain, "eyePosition");
         locTime = glGetUniformLocation(shaderProgramMain, "time");
 
+
         shaderProgramPost = ShaderUtils.loadProgram("/post");
+
+        locHeight = glGetUniformLocation(shaderProgramPost, "height");
+        shakeObjects = glGetUniformLocation(shaderProgramPost, "shake");
+        locTimePostProc = glGetUniformLocation(shaderProgramPost, "time");
+
+        camera2 = new Camera()
+                .withPosition(new Vec3D(0, 3, 2))
+                .withAzimuth(6/ 4f * Math.PI)
+                .withZenith(-1 / 5f * Math.PI);
 
         camera = new Camera()
                 .withPosition(new Vec3D(3, 3, 2))
                 .withAzimuth(5 / 4f * Math.PI)
                 .withZenith(-1 / 5f * Math.PI);
-        //TODO: poslat do .frag jako uniform hodnotu to je E ve vzorecku
+
+
+
+
         eyePosition = camera.getEye();
         //TODO: grid ktery se ohne do koule ve vertexshaderu, predat color
+
+
         lightPos  = new Vec3D(1, 3, 3);
         projection = new Mat4PerspRH(
                 Math.PI / 3,
@@ -101,8 +124,8 @@ public class Renderer extends AbstractRenderer {
 //        };
 //        buffers = new OGLBuffers(vertexBufferData, attributes, indexBufferData);
 
-        buffersMain = GridFactory.generateGrid(50, 50);
-        buffersPost = GridFactory.generateGrid(2, 2);
+        buffersMain = GridFactory.generateGridTriangleList(50, 50);
+        buffersPost = GridFactory.generateGridTriangleList(2, 2);
 
         renderTarget = new OGLRenderTarget(1024, 1024);
 
@@ -120,8 +143,13 @@ public class Renderer extends AbstractRenderer {
     public void display() {
         glEnable(GL_DEPTH_TEST);
         // text-renderer disables depth-test (z-buffer)
-
+       if(polygonMode){
+           glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+       } else {
+           glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+       }
         renderMain();
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         renderPostProcessing();
 
         glDisable(GL_DEPTH_TEST);
@@ -132,8 +160,8 @@ public class Renderer extends AbstractRenderer {
         textRenderer.addStr2D(3, 15, "KPGRF3 TASK 1");
         textRenderer.addStr2D(3, 30, "JAN ZAHRADNÍK");
         textRenderer.addStr2D(3, 45, "FIM UHK 2021");
-        textRenderer.addStr2D(width - 390, 15, "Controls: [WASD] Movement, [LMB] View rotation, [O,P] Change models");
-        textRenderer.addStr2D(width - 390, 30, "[K,L] Change texture");
+        textRenderer.addStr2D(width - 500, 15, "Controls: [WASD] Movement, [LMB] View rotation, [O,P] Change models, [C] Change camera");
+        textRenderer.addStr2D(width - 500, 30, "[Q,E] Change projection, [K,L] Change texture, [J] Change polygon mode");
         textRenderer.addStr2D(width - 90, height - 3, " (c) PGRF UHK");
     }
 
@@ -141,9 +169,22 @@ public class Renderer extends AbstractRenderer {
         glUseProgram(shaderProgramMain);
         renderTarget.bind(); // render to texture
 
+        if(cameraType){
+            glUniformMatrix4fv(viewLocation, false, camera.getViewMatrix().floatArray());
+            eyePosition = camera.getEye();
+        } else {
+            glUniformMatrix4fv(viewLocation, false, camera2.getViewMatrix().floatArray());
+            eyePosition = camera2.getEye();
+        }
+
+
+
+
+
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        glUniformMatrix4fv(viewLocation, false, camera.getViewMatrix().floatArray());
+//        glUniformMatrix4fv(viewLocation, false, camera.getViewMatrix().floatArray());
+//        glUniformMatrix4fv(viewLocation, false, cameraTheSecond.getViewMatrix().floatArray());
         glUniformMatrix4fv(projectionLocation, false, projection.floatArray());
         glUniform3fv(locLightPosition, ToFloatArray.convert(lightPos));
         glUniform3fv(locEyePosition, ToFloatArray.convert(lightPos));
@@ -151,17 +192,21 @@ public class Renderer extends AbstractRenderer {
         glUniformMatrix4fv(modelLocation, false, model.floatArray());
 
         textureForObjects.bind(shaderProgramMain, "textureForObjects", 0);
-//
-//        glUniform1f(typeLocation, 0f);
-//        buffersMain.draw(GL_TRIANGLES, shaderProgramMain);
+
         glUniform1f(typeLocation, type);
         //TODO: mohu zavolat znova a vykresli mi dalsi dokud nedam clear
         buffersMain.draw(GL_TRIANGLES, shaderProgramMain);
         glUniform1f(colorTypeLoc, colorType);
+
+
+
+
 //        model
         time += 0.01;
         glUniform1f(locTime, time);
         //TODO: reflektorovy zdroj svetla spotDirection =-lightPosition;
+
+//        buffersMain.draw(GL_TRIANGLES,shaderProgramMain);
 
 //        glUniformMatrix4fv(typeLocation,1,GL_FALSE,(const GLfloat*) mvp);
     }
@@ -174,6 +219,12 @@ public class Renderer extends AbstractRenderer {
 
         renderTarget.getColorTexture().bind(shaderProgramPost, "textureRendered", 0);
         buffersPost.draw(GL_TRIANGLES, shaderProgramPost);
+        glUniform1f(locHeight, height);
+        time += 0.01;
+        glUniform1f(locTimePostProc, time);
+        glUniform1i(shakeObjects, shake);
+        float move = (float) (1000.0 * 2*3.14159 * 0.75);  // 3/4 of a wave cycle per second
+
     }
 
 
@@ -183,19 +234,22 @@ public class Renderer extends AbstractRenderer {
         public void invoke(long window, double x, double y) {
             if (mousePressed) {
                 if (button == GLFW_MOUSE_BUTTON_LEFT) {
-                    camera = camera.addAzimuth(Math.PI / 2 * (oldMx - x) / width);
-                    camera = camera.addZenith(Math.PI / 2 * (oldMy - y) / height);
+                    if(cameraType){
+                        camera = camera.addAzimuth(Math.PI / 2 * (oldMx - x) / width);
+                        camera = camera.addZenith(Math.PI / 2 * (oldMy - y) / height);
+                    } else {
+                        camera2 = camera2.addAzimuth(Math.PI / 2 * (oldMx - x) / width);
+                        camera2 = camera2.addZenith(Math.PI / 2 * (oldMy - y) / height);
+                    }
+
                     oldMx = x;
                     oldMy = y;
 
                 } else if (button == GLFW_MOUSE_BUTTON_RIGHT) {
                     //rotace
-//                    new Mat4Rot()
-                    //TODO: neotaci se kolem sve osy pri translaci se to nevydari
                     double rotX = (oldMx - x) / 200.0;
                     double rotY = (oldMy - y) / 200.0;
                     rotation = rotation.mul(new Mat4RotXYZ(rotX, 0, rotY));
-//                    translation = new Mat4Identity();.mul(translation);
                     model = rotation.mul(translation);
                     oldMx = x;
                     oldMy = y;
@@ -278,6 +332,21 @@ public class Renderer extends AbstractRenderer {
                     case GLFW_KEY_L:
                         if (colorType < 4) colorType += 1;
                         break;
+                    case GLFW_KEY_C:
+                        cameraType = !cameraType;
+                        break;
+                    case GLFW_KEY_J:
+                        polygonMode = !polygonMode;
+                        break;
+                        //TODO: shake effect optional
+                    case GLFW_KEY_H:
+                        shake = 1;
+                        break;
+                    case GLFW_KEY_G:
+                        shake = 0;
+                        break;
+
+
 
                 }
             }

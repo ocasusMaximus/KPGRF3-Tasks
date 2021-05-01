@@ -1,4 +1,4 @@
-package p01simple;
+package kpgrf3_task1;
 //package lvl2advanced.p01gui.p01simple;
 
 import lwjglutils.OGLTextRenderer;
