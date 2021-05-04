@@ -15,7 +15,7 @@ out vec2 texCoord;
 
 out vec3 aPosition;
 out vec3 aNormal;
-out vec3 lightVec;
+out vec3 lightDirection;
 out vec3 eyeVec;
 
 const float PI = 3.1415;
@@ -37,6 +37,17 @@ vec3 getSphereNormal(vec2 vec) {
     vec3 v = getSphere(vec + vec2(0, 0.001)) - getSphere(vec - vec2(0, 0.001));
 
     return cross(u, v);
+}
+
+vec3 getLightSphere(vec2 vec) {
+    float az = vec.x * PI;// <-1;1> -> <-PI;PI>
+    float ze = vec.y * PI / 2.0;// <-1;1> -> <-PI/2;PI/2>
+    float r = 0.1;
+
+    float x = r * cos(az) * cos(ze);
+    float y =  r * sin(az) * cos(ze);
+    float z =  r * sin(ze);
+    return vec3(x, y, z);
 }
 
 
@@ -74,11 +85,11 @@ vec3 getDonutNormal(vec2 vec) {
 
 //cylinder
 vec3 getFunnel(vec2 vec) {
-    float s = PI * 0.1 - PI * vec.x;
-    float t = PI * 0.1 - PI * vec.y /2;
+    float s =  PI * vec.x;
+    float t = PI * vec.y /2;
 
-    float x =  t*cos(s);
-    float y =  t*sin(s);
+    float x =  t*cos(s)/2;
+    float y =  t*sin(s)/2;
     float z = t;
 
     return vec3(x, y, z);
@@ -94,11 +105,11 @@ vec3 getFunnelNormal(vec2 vec) {
 
 //cylinder
 vec3 getCylinder(vec2 vec) {
-    float s = PI * 0.1 - PI * vec.x;
-    float t = PI * 0.1 - PI * vec.y/2;
+    float s = PI * vec.x;
+    float t =   vec.y/2;
 
-    float x =  2*cos(s);
-    float y =  2*sin(s);
+    float x =  cos(s)/2 ;
+    float y =  sin(s)/2;
     float z = t;
 
     return vec3(x, y, z);
@@ -113,7 +124,7 @@ vec3 getCylinderNormal(vec2 vec) {
 
 //kartez
 vec3 getPlot(vec2 vec) {
-    return vec3(vec.x,vec.y,0.5 * cos(sqrt(20 * vec.x * vec.x + 20 * vec.y * vec.y)));
+    return vec3(vec.x, vec.y, 0.5 * cos(sqrt(20 * vec.x * vec.x + 20 * vec.y * vec.y)));
 }
 vec3 getPlotNormal(vec2 vec) {
     vec3 u = getPlot(vec + vec2(0.001, 0)) - getPlot(vec - vec2(0.001, 0));
@@ -135,11 +146,10 @@ vec3 getArcNormal(vec2 vec) {
 }
 
 
-
 //kartez
 vec3 getButterfly(vec2 vec) {
     //    return 0.5 * cos(sqrt(20 * vec.x * vec.x + 20 * vec.y * vec.y));
-    return vec3(cos(vec.x),vec.y,vec.x*vec.y);
+    return vec3(cos(vec.x), vec.y, vec.x*vec.y);
 }
 vec3 getButterflyNormal(vec2 vec) {
     vec3 u = getButterfly(vec + vec2(0.001, 0)) - getButterfly(vec - vec2(0.001, 0));
@@ -208,7 +218,7 @@ void main() {
     }
     if (type == 4){
         normal = getDonutNormal(position);
-        position.y = sin(position.y + time);
+        position.y = position.y + time;
         finalPosition = getDonut(position);
     }
     if (type == 5){
@@ -223,11 +233,15 @@ void main() {
         normal = getCylinderNormal(position);
         finalPosition = getCylinder(position);
     }
+    if (type == 8){
+        finalPosition = getLightSphere(position);
+    }
+
     //TODO: dodelat zobrazeni polohy svetla - udelat kouli a
-//    finalPosition = getLightSphere();
+    //    finalPosition = getLightSphere();
     aPosition = finalPosition;
     aNormal = normal;
-    lightVec = normalize(lightPosition - finalPosition);
+    lightDirection = normalize(lightPosition - finalPosition);
     //TODO: Reflektorovy zdroj - lightVec je ld z prednasky shaders
     //TODO:spotCutoff bude kolem 1 napr 0.99 ale ne > 1
     eyeVec = normalize(eyePosition - finalPosition);

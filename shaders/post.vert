@@ -4,6 +4,16 @@ uniform int  shake;
 out vec2 texCoord;
 uniform float height;
 uniform float time;
+
+
+void shakeEffect(){
+
+    float strength = 0.01;
+
+    gl_Position.x += cos(time * 10) * strength;
+    gl_Position.y += cos(time * 15) * strength;
+
+}
 void main() {
 
     texCoord = inPosition;
@@ -15,17 +25,15 @@ void main() {
     vec2 position = inPosition * 2 - 1;
     gl_Position = vec4(position, 0, 1.0);
     //TODO: shake
-        if (shake == 1)
-        {
-            float strength = 0.01;
-            gl_Position.x += cos(time * 10) * strength;
-            gl_Position.y += cos(time * 15) * strength;
-        }
+    if (shake == 1)
+    {
+        shakeEffect();
+    }
 
-//    TODO:Blur
-//    float strength = 0.3;
-//    vec2 pos = vec2(texture.x + sin(time) * strength, texture.y + cos(time) * strength);
-//    TexCoords = pos;
+    //    TODO:Blur
+    //    float strength = 0.3;
+    //    vec2 pos = vec2(texture.x + sin(time) * strength, texture.y + cos(time) * strength);
+    //    TexCoords = pos;
 
     // grid je <0;1> - potřebujeme <-1;1>, protože takový je rozsah obrazovky
 

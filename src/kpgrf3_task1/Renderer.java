@@ -48,7 +48,7 @@ public class Renderer extends AbstractRenderer {
     float colorType = 0;
     int colorTypeLoc;
     Vec3D eyePosition;
-     int locHeight;
+    int locHeight;
     boolean polygonMode = true;
     int shakeObjects;
     private int shake;
@@ -86,7 +86,7 @@ public class Renderer extends AbstractRenderer {
 
         camera2 = new Camera()
                 .withPosition(new Vec3D(0, 3, 2))
-                .withAzimuth(6/ 4f * Math.PI)
+                .withAzimuth(6 / 4f * Math.PI)
                 .withZenith(-1 / 5f * Math.PI);
 
         camera = new Camera()
@@ -95,13 +95,11 @@ public class Renderer extends AbstractRenderer {
                 .withZenith(-1 / 5f * Math.PI);
 
 
-
-
         eyePosition = camera.getEye();
-        //TODO: grid ktery se ohne do koule ve vertexshaderu, predat color
 
 
-        lightPos  = new Vec3D(1, 3, 3);
+
+        lightPos = new Vec3D(1, -1, 1);
         projection = new Mat4PerspRH(
                 Math.PI / 3,
                 height / (float) width,
@@ -123,9 +121,11 @@ public class Renderer extends AbstractRenderer {
 //                new OGLBuffers.Attrib("inPosition", 2),
 //        };
 //        buffers = new OGLBuffers(vertexBufferData, attributes, indexBufferData);
-
         buffersMain = GridFactory.generateGridTriangleList(50, 50);
         buffersPost = GridFactory.generateGridTriangleList(2, 2);
+//
+//        buffersMain = GridFactory.generateGridTriangleStrip(50, 50);
+//        buffersPost = GridFactory.generateGridTriangleStrip(2, 2);
 
         renderTarget = new OGLRenderTarget(1024, 1024);
 
@@ -143,11 +143,12 @@ public class Renderer extends AbstractRenderer {
     public void display() {
         glEnable(GL_DEPTH_TEST);
         // text-renderer disables depth-test (z-buffer)
-       if(polygonMode){
-           glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-       } else {
-           glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-       }
+
+        if (polygonMode) {
+            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+        } else {
+            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        }
         renderMain();
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         renderPostProcessing();
@@ -169,7 +170,7 @@ public class Renderer extends AbstractRenderer {
         glUseProgram(shaderProgramMain);
         renderTarget.bind(); // render to texture
 
-        if(cameraType){
+        if (cameraType) {
             glUniformMatrix4fv(viewLocation, false, camera.getViewMatrix().floatArray());
             eyePosition = camera.getEye();
         } else {
@@ -179,31 +180,34 @@ public class Renderer extends AbstractRenderer {
 
 
 
-
-
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 //        glUniformMatrix4fv(viewLocation, false, camera.getViewMatrix().floatArray());
 //        glUniformMatrix4fv(viewLocation, false, cameraTheSecond.getViewMatrix().floatArray());
         glUniformMatrix4fv(projectionLocation, false, projection.floatArray());
         glUniform3fv(locLightPosition, ToFloatArray.convert(lightPos));
-        glUniform3fv(locEyePosition, ToFloatArray.convert(lightPos));
+        glUniform3fv(locEyePosition, ToFloatArray.convert(eyePosition));
 
         glUniformMatrix4fv(modelLocation, false, model.floatArray());
 
         textureForObjects.bind(shaderProgramMain, "textureForObjects", 0);
 
         glUniform1f(typeLocation, type);
+        glUniform1f(colorTypeLoc, colorType);
         //TODO: mohu zavolat znova a vykresli mi dalsi dokud nedam clear
         buffersMain.draw(GL_TRIANGLES, shaderProgramMain);
-        glUniform1f(colorTypeLoc, colorType);
 
-
-
+//        System.out.println(glfwGetTime());
+    // svetelna koule
+        glUniform1f(typeLocation, 8f);
+        glUniform1f(colorTypeLoc, 5f);
+        glUniformMatrix4fv(modelLocation, false,new Mat4Transl(lightPos).floatArray());
+        buffersMain.draw(GL_TRIANGLES, shaderProgramMain);
 
 //        model
         time += 0.01;
         glUniform1f(locTime, time);
+
         //TODO: reflektorovy zdroj svetla spotDirection =-lightPosition;
 
 //        buffersMain.draw(GL_TRIANGLES,shaderProgramMain);
@@ -223,7 +227,7 @@ public class Renderer extends AbstractRenderer {
         time += 0.01;
         glUniform1f(locTimePostProc, time);
         glUniform1i(shakeObjects, shake);
-        float move = (float) (1000.0 * 2*3.14159 * 0.75);  // 3/4 of a wave cycle per second
+        float move = (float) (1000.0 * 2 * 3.14159 * 0.75);  // 3/4 of a wave cycle per second
 
     }
 
@@ -234,7 +238,7 @@ public class Renderer extends AbstractRenderer {
         public void invoke(long window, double x, double y) {
             if (mousePressed) {
                 if (button == GLFW_MOUSE_BUTTON_LEFT) {
-                    if(cameraType){
+                    if (cameraType) {
                         camera = camera.addAzimuth(Math.PI / 2 * (oldMx - x) / width);
                         camera = camera.addZenith(Math.PI / 2 * (oldMy - y) / height);
                     } else {
@@ -284,6 +288,7 @@ public class Renderer extends AbstractRenderer {
 
         }
     };
+
     private final GLFWKeyCallback setKeyFallback = new GLFWKeyCallback() {
         @Override
         public void invoke(long window, int key, int scancode, int action, int mods) {
@@ -338,14 +343,21 @@ public class Renderer extends AbstractRenderer {
                     case GLFW_KEY_J:
                         polygonMode = !polygonMode;
                         break;
-                        //TODO: shake effect optional
+                    //TODO: shake effect optional
                     case GLFW_KEY_H:
                         shake = 1;
                         break;
-                    case GLFW_KEY_G:
-                        shake = 0;
+//                    case GLFW_KEY_G:
+//                        shake = 0;
+//                        break;
+                    case GLFW_KEY_F:
+                        buffersMain = GridFactory.generateGridTriangleList(50, 50);
+                        buffersPost = GridFactory.generateGridTriangleList(2, 2);
                         break;
-
+                    case GLFW_KEY_G:
+                        buffersMain = GridFactory.generateGridTriangleStrips(50, 50);
+                        buffersPost = GridFactory.generateGridTriangleStrips(2, 2);
+                        break;
 
 
                 }
