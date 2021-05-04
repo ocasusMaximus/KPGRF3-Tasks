@@ -13,10 +13,11 @@ uniform vec3 eyePosition;
 uniform float colorType;
 out vec2 texCoord;
 
-out vec3 aPosition;
-out vec3 aNormal;
+out vec3 objectPosition;
+out vec3 normalDirection;
 out vec3 lightDirection;
 out vec3 eyeVec;
+out float distance;
 
 const float PI = 3.1415;
 
@@ -239,13 +240,13 @@ void main() {
 
     //TODO: dodelat zobrazeni polohy svetla - udelat kouli a
     //    finalPosition = getLightSphere();
-    aPosition = finalPosition;
-    aNormal = normal;
+    objectPosition = finalPosition;
+    normalDirection = normal;
     lightDirection = normalize(lightPosition - finalPosition);
     //TODO: Reflektorovy zdroj - lightVec je ld z prednasky shaders
-    //TODO:spotCutoff bude kolem 1 napr 0.99 ale ne > 1
-    eyeVec = normalize(eyePosition - finalPosition);
 
+    eyeVec = normalize(eyePosition - finalPosition);
+    distance = length(lightPosition - finalPosition);
     //TODO: pridat dalsi kameru kvuli modifikaci polohy svetla, aby svetlo jezdilo sem a tam
 
 
