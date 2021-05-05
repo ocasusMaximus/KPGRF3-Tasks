@@ -53,6 +53,8 @@ public class Renderer extends AbstractRenderer {
     int shakeObjects;
     private int shake;
     private int locTimePostProc;
+    private Mat4 lightTransl;
+    private double lightMoveSpeed;
 
 
     @Override
@@ -98,8 +100,7 @@ public class Renderer extends AbstractRenderer {
         eyePosition = camera.getEye();
 
 
-
-        lightPos = new Vec3D(1, -1, 1);
+        lightPos = new Vec3D(2, 2, 1);
         projection = new Mat4PerspRH(
                 Math.PI / 3,
                 height / (float) width,
@@ -137,6 +138,7 @@ public class Renderer extends AbstractRenderer {
 
         viewer = new OGLTexture2D.Viewer();
         textRenderer = new OGLTextRenderer(width, height);
+        lightTransl = new Mat4Transl(lightPos);
     }
 
     @Override
@@ -162,7 +164,7 @@ public class Renderer extends AbstractRenderer {
         textRenderer.addStr2D(3, 30, "JAN ZAHRADNÍK");
         textRenderer.addStr2D(3, 45, "FIM UHK 2021");
         textRenderer.addStr2D(width - 500, 15, "Controls: [WASD] Movement, [LMB] View rotation, [O,P] Change models, [C] Change camera");
-        textRenderer.addStr2D(width - 500, 30, "[Q,E] Change projection, [K,L] Change texture, [J] Change polygon mode");
+        textRenderer.addStr2D(width - 500, 30, "[Q,E] Change projection, [K,L] Change texture, [J] Change polygon mode, [R] Reset ");
         textRenderer.addStr2D(width - 90, height - 3, " (c) PGRF UHK");
     }
 
@@ -179,34 +181,39 @@ public class Renderer extends AbstractRenderer {
         }
 
 
-
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-//        glUniformMatrix4fv(viewLocation, false, camera.getViewMatrix().floatArray());
-//        glUniformMatrix4fv(viewLocation, false, cameraTheSecond.getViewMatrix().floatArray());
-        glUniformMatrix4fv(projectionLocation, false, projection.floatArray());
+        glUniformMatrix4fv(projectionLocation, false, ToFloatArray.convert(projection));
         glUniform3fv(locLightPosition, ToFloatArray.convert(lightPos));
         glUniform3fv(locEyePosition, ToFloatArray.convert(eyePosition));
 
-        glUniformMatrix4fv(modelLocation, false, model.floatArray());
+        glUniformMatrix4fv(modelLocation, false, ToFloatArray.convert(model));
 
         textureForObjects.bind(shaderProgramMain, "textureForObjects", 0);
 
         glUniform1f(typeLocation, type);
         glUniform1f(colorTypeLoc, colorType);
-        //TODO: mohu zavolat znova a vykresli mi dalsi dokud nedam clear
         buffersMain.draw(GL_TRIANGLES, shaderProgramMain);
 
-//        System.out.println(glfwGetTime());
-    // svetelna koule
-        glUniform1f(typeLocation, 8f);
-        glUniform1f(colorTypeLoc, 5f);
-        glUniformMatrix4fv(modelLocation, false,new Mat4Transl(lightPos).floatArray());
-        buffersMain.draw(GL_TRIANGLES, shaderProgramMain);
-
-//        model
         time += 0.01;
         glUniform1f(locTime, time);
+        lightMoveSpeed += 0.05;
+        //TODO:zeptat se na konzultaci jestli takto spravne
+        lightPos = new Vec3D( Math.sin(-lightMoveSpeed), 2,1);
+        System.out.println(lightPos);
+//        lightPos.mul(new Mat3Transl2D(new Vec2D(1,0)));
+        lightTransl = new Mat4Transl(lightPos);
+
+
+        // svetelna koule
+        glUniform1f(typeLocation, 8f);
+        glUniform1f(colorTypeLoc, 7f);
+
+        glUniformMatrix4fv(modelLocation, false, ToFloatArray.convert(lightTransl));
+        buffersMain.draw(GL_TRIANGLES, shaderProgramMain);
+
+
+//        model
 
         //TODO: reflektorovy zdroj svetla spotDirection =-lightPosition;
 
@@ -227,7 +234,6 @@ public class Renderer extends AbstractRenderer {
         time += 0.01;
         glUniform1f(locTimePostProc, time);
         glUniform1i(shakeObjects, shake);
-        float move = (float) (1000.0 * 2 * 3.14159 * 0.75);  // 3/4 of a wave cycle per second
 
     }
 
@@ -300,16 +306,36 @@ public class Renderer extends AbstractRenderer {
             if (action == GLFW_PRESS || action == GLFW_REPEAT) {
                 switch (key) {
                     case GLFW_KEY_W:
-                        camera = camera.forward(1);
+                        if (cameraType) {
+                            camera = camera.forward(1);
+                        } else {
+                            camera2 = camera2.forward(1);
+                        }
+
                         break;
                     case GLFW_KEY_D:
-                        camera = camera.right(1);
+                        if (cameraType) {
+                            camera = camera.right(1);
+                        } else {
+                            camera2 = camera2.right(1);
+                        }
+
                         break;
                     case GLFW_KEY_S:
-                        camera = camera.backward(1);
+                        if (cameraType) {
+                            camera = camera.backward(1);
+                        } else {
+                            camera2 = camera2.backward(1);
+                        }
+
                         break;
                     case GLFW_KEY_A:
-                        camera = camera.left(1);
+                        if (cameraType) {
+                            camera = camera.left(1);
+                        } else {
+                            camera2 = camera2.left(1);
+                        }
+
                         break;
                     case GLFW_KEY_O:
                         if (type < 7) type += 1;
@@ -335,13 +361,19 @@ public class Renderer extends AbstractRenderer {
                         if (colorType > 0) colorType -= 1;
                         break;
                     case GLFW_KEY_L:
-                        if (colorType < 4) colorType += 1;
+                        if (colorType < 6) colorType += 1;
                         break;
                     case GLFW_KEY_C:
                         cameraType = !cameraType;
                         break;
                     case GLFW_KEY_J:
                         polygonMode = !polygonMode;
+                        break;
+
+                    case GLFW_KEY_R:
+                        model = new Mat4Identity();
+                        rotation = new Mat4Identity();
+                        translation = new Mat4Identity();
                         break;
                     //TODO: shake effect optional
                     case GLFW_KEY_H:

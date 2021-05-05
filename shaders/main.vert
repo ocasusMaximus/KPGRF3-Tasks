@@ -10,6 +10,9 @@ uniform float time;
 
 uniform vec3 lightPosition;
 uniform vec3 eyePosition;
+
+
+
 uniform float colorType;
 out vec2 texCoord;
 
@@ -18,6 +21,8 @@ out vec3 normalDirection;
 out vec3 lightDirection;
 out vec3 eyeVec;
 out float distance;
+
+
 
 const float PI = 3.1415;
 
@@ -201,12 +206,13 @@ void main() {
     vec3 finalPosition;
     vec3 normal;
     if (type == 0) {
-        normal = getBananaPeelNormal(position);
-        finalPosition = getBananaPeel(position);
-    }
-    if (type == 1) {
         normal = getPlotNormal(position);
         finalPosition = getPlot(position);
+    }
+    if (type == 1) {
+        normal = getBananaPeelNormal(position);
+        finalPosition = getBananaPeel(position);
+
     }
     if (type == 2){
         normal = getButterflyNormal(position);
@@ -238,14 +244,16 @@ void main() {
         finalPosition = getLightSphere(position);
     }
 
-    //TODO: dodelat zobrazeni polohy svetla - udelat kouli a
+
     //    finalPosition = getLightSphere();
+
     objectPosition = finalPosition;
     normalDirection = normal;
     lightDirection = normalize(lightPosition - finalPosition);
     //TODO: Reflektorovy zdroj - lightVec je ld z prednasky shaders
 
     eyeVec = normalize(eyePosition - finalPosition);
+//    distance = length(lightDirection);
     distance = length(lightPosition - finalPosition);
     //TODO: pridat dalsi kameru kvuli modifikaci polohy svetla, aby svetlo jezdilo sem a tam
 

@@ -5,7 +5,7 @@ uniform sampler2D textureForObjects;
 
 uniform float constantAttenuation, linearAttenuation, quadraticAttenuation;
 
-uniform vec3 spotDirection;
+
 
 
 out vec4 outColor;// output from the fragment shader
@@ -29,8 +29,8 @@ void main() {
     float quadraticAttenuation = 0.01;
 
     float spotCutOff = 0.98;
+    vec3 spotDirection = -lightPosition;
 
-//    float spotEffect = max(dot(normalize(spotDirection), normalize(-ld)), 0);
 
 
 
@@ -44,21 +44,42 @@ void main() {
     linearAttenuation * distance +
     quadraticAttenuation * distance * distance);
 
+
+
     vec4 ambient = vec4(0.2, 0.2, 0.2, 1);
     vec4 diffuse = vec4(nDotL*vec3(1.5), 1);
     vec4 spec = vec4(nDotH*vec3(0.6), 1);
-    vec4 finalColor = ambient  + attentuation * (spec + diffuse);
 
-    if (colorType == 0) outColor = textureColor;
-    if (colorType == 1) outColor = vec4(texCoord, 1.0, 1.0);
+    float spotEffect = max(dot(normalize(spotDirection), normalize(-ld)), 0);
+
+    float blend = clamp((spotEffect-spotCutOff)/(1-spotCutOff), 0.0, 1.0);//orezani na rozsah <0;1>
+
+    vec4 lighting = ambient;
+
+
+
+
+    if (colorType == 5) outColor = textureColor;
+    if (colorType == 6) outColor = vec4(texCoord, 1.0, 1.0);
     if (colorType == 2) outColor = vec4(objectPosition, 1.0);
-    if (colorType == 3) outColor = finalColor* textureColor;
-    if (colorType == 4) outColor = vec4(normalize(normalDirection), 1.0);
+    if (colorType == 3) outColor = vec4(normalize(normalDirection), 1.0);
+    if (colorType == 4) {
+
+        outColor = lighting* textureColor;
+    }
+    if (colorType == 0) {
+        lighting = ambient  + attentuation * (spec + diffuse);
+//                lighting.rgb = vec3(0.8,0.8,0.255);
+        outColor = lighting;//* textureColor;//* textureColor;
+    }
+    if (colorType == 1){
+
+        if (spotEffect > spotCutOff)  lighting = mix(ambient, ambient  + attentuation * (spec + diffuse), blend);
+        outColor = lighting;//* textureColor;
+    }//;
+
     //light color
-    if (colorType == 5) outColor = vec4(1);
+    if (colorType == 7) outColor = vec4(1);
 
 
-    //	outColor = vec4(1.0, 0.0, 0.0, 1.0);
-
-
-} 
+}
