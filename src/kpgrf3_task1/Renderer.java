@@ -97,8 +97,6 @@ public class Renderer extends AbstractRenderer {
                 .withZenith(-1.5);
 
 
-
-
         eyePosition = camera.getEye();
 
 
@@ -208,7 +206,7 @@ public class Renderer extends AbstractRenderer {
 //        lightPos.mul(new Mat3Transl2D(new Vec2D(1,0)));
         lightTransl = new Mat4Transl(lightPos);
 
-
+//TODO:pokud bych chtel 2 koule svetelny tak musim vse zdublovat i ve shaderech
         // svetelna koule
         glUniform1f(typeLocation, 8f);
         glUniform1f(colorTypeLoc, 7f);

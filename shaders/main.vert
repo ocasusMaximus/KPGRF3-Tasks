@@ -114,7 +114,7 @@ vec3 getCylinder(vec2 vec) {
     float s = PI * vec.x;
     float t =   vec.y/2;
 
-    float x =  cos(s)/2 ;
+    float x =  cos(s)/2;
     float y =  sin(s)/2;
     float z = t;
 
@@ -248,14 +248,15 @@ void main() {
     //    finalPosition = getLightSphere();
 
     objectPosition = finalPosition;
-    normalDirection = normal;
-//    lightPosition * model;
-    lightDirection = normalize(lightPosition - finalPosition);
+    normalDirection = inverse(transpose(mat3(model))) * normal;
+
+   vec4 finalPos4 = model * vec4(finalPosition,1.0);
+    lightDirection = normalize(lightPosition - finalPos4.xyz);
     //TODO: Reflektorovy zdroj - lightVec je ld z prednasky shaders
 
-    eyeVec = normalize(eyePosition - finalPosition);
-//    distance = length(lightDirection);
-    distance = length(lightPosition - finalPosition);
+    eyeVec = normalize(eyePosition - finalPos4.xyz);
+    //    distance = length(lightDirection);
+    distance = length(lightPosition - finalPos4.xyz);
     //TODO: pridat dalsi kameru kvuli modifikaci polohy svetla, aby svetlo jezdilo sem a tam
 
 

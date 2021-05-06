@@ -72,7 +72,7 @@ class GridFactory {
             }
         }
 
-        int[] ib = new int[2 *3 * (m-1) * (n - 1)];
+        int[] ib = new int[2 * m * (n - 1)];
         int index2 = 0;
 
         for (int i = 0; i < n - 1; i++) {
@@ -90,13 +90,13 @@ class GridFactory {
 
                 System.out.println("----------------------------------");
 //
-                ib[index2++] = j + rowOffset;
-                ib[index2++] = j + m + rowOffset;
-                ib[index2++] = j + 1 + rowOffset;
-
-                ib[index2++] = j + m + rowOffset;
-                ib[index2++] = j + 1 + rowOffset;
-                ib[index2++] = j + m + 1 + rowOffset;
+//                ib[index2++] = j + rowOffset;
+//                ib[index2++] = j + m + rowOffset;
+//                ib[index2++] = j + 1 + rowOffset;
+//
+//                ib[index2++] = j + m + rowOffset;
+//                ib[index2++] = j + 1 + rowOffset;
+//                ib[index2++] = j + m + 1 + rowOffset;
 
             }
 //

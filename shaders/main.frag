@@ -27,7 +27,7 @@ void main() {
     float constantAttenuation = 1.0;
     float linearAttenuation = 0.1;
     float quadraticAttenuation = 0.01;
-
+//TODO: tlacitkem menit jeste spot cutoff mezi 0.9 - 1
     float spotCutOff = 0.98;
     vec3 spotDirection = -lightPosition;
 
