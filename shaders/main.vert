@@ -249,6 +249,7 @@ void main() {
 
     objectPosition = finalPosition;
     normalDirection = normal;
+//    lightPosition * model;
     lightDirection = normalize(lightPosition - finalPosition);
     //TODO: Reflektorovy zdroj - lightVec je ld z prednasky shaders
 

@@ -86,21 +86,23 @@ public class Renderer extends AbstractRenderer {
         shakeObjects = glGetUniformLocation(shaderProgramPost, "shake");
         locTimePostProc = glGetUniformLocation(shaderProgramPost, "time");
 
-        camera2 = new Camera()
-                .withPosition(new Vec3D(0, 3, 2))
-                .withAzimuth(6 / 4f * Math.PI)
-                .withZenith(-1 / 5f * Math.PI);
-
         camera = new Camera()
-                .withPosition(new Vec3D(3, 3, 2))
+                .withPosition(new Vec3D(3, 3, 3))
                 .withAzimuth(5 / 4f * Math.PI)
                 .withZenith(-1 / 5f * Math.PI);
+
+        camera2 = new Camera()
+                .withPosition(new Vec3D(0, 0, 6))
+                .withAzimuth(0)
+                .withZenith(-1.5);
+
+
 
 
         eyePosition = camera.getEye();
 
 
-        lightPos = new Vec3D(2, 2, 1);
+        lightPos = new Vec3D(2, 2, 1.5);
         projection = new Mat4PerspRH(
                 Math.PI / 3,
                 height / (float) width,
@@ -121,12 +123,10 @@ public class Renderer extends AbstractRenderer {
 //        OGLBuffers.Attrib[] attributes = {
 //                new OGLBuffers.Attrib("inPosition", 2),
 //        };
-//        buffers = new OGLBuffers(vertexBufferData, attributes, indexBufferData);
+
         buffersMain = GridFactory.generateGridTriangleList(50, 50);
         buffersPost = GridFactory.generateGridTriangleList(2, 2);
-//
-//        buffersMain = GridFactory.generateGridTriangleStrip(50, 50);
-//        buffersPost = GridFactory.generateGridTriangleStrip(2, 2);
+
 
         renderTarget = new OGLRenderTarget(1024, 1024);
 
@@ -197,10 +197,14 @@ public class Renderer extends AbstractRenderer {
 
         time += 0.01;
         glUniform1f(locTime, time);
-        lightMoveSpeed += 0.05;
+        lightMoveSpeed += 0.03;
         //TODO:zeptat se na konzultaci jestli takto spravne
-        lightPos = new Vec3D( Math.sin(-lightMoveSpeed), 2,1);
-        System.out.println(lightPos);
+        //TODO: pri rotaci se meni i ta pozice svetla
+
+        double x = 2 * Math.cos(lightMoveSpeed);
+        double y = 2 * Math.sin(lightMoveSpeed);
+        lightPos = new Vec3D(x, y, 1.5);
+
 //        lightPos.mul(new Mat3Transl2D(new Vec2D(1,0)));
         lightTransl = new Mat4Transl(lightPos);
 

@@ -50,6 +50,9 @@ void main() {
     vec4 diffuse = vec4(nDotL*vec3(1.5), 1);
     vec4 spec = vec4(nDotH*vec3(0.6), 1);
 
+    diffuse = vec4(diffuse.rgb * vec3(0.8, 0.8, 0.255), 1.0f);
+    spec = vec4(spec.rgb * vec3(0.8, 0.8, 0.255), 1.0f);
+
     float spotEffect = max(dot(normalize(spotDirection), normalize(-ld)), 0);
 
     float blend = clamp((spotEffect-spotCutOff)/(1-spotCutOff), 0.0, 1.0);//orezani na rozsah <0;1>
@@ -59,27 +62,30 @@ void main() {
 
 
 
-    if (colorType == 5) outColor = textureColor;
-    if (colorType == 6) outColor = vec4(texCoord, 1.0, 1.0);
+
+    if (colorType == 0) outColor = textureColor;
+    if (colorType == 1) outColor = vec4(texCoord, 1.0, 1.0);
     if (colorType == 2) outColor = vec4(objectPosition, 1.0);
-    if (colorType == 3) outColor = vec4(normalize(normalDirection), 1.0);
+    if (colorType == 3) outColor = vec4(nd, 1.0);
     if (colorType == 4) {
 
-        outColor = lighting* textureColor;
+        outColor = lighting;//* textureColor;
     }
-    if (colorType == 0) {
+    if (colorType == 5) {
+
         lighting = ambient  + attentuation * (spec + diffuse);
-//                lighting.rgb = vec3(0.8,0.8,0.255);
-        outColor = lighting;//* textureColor;//* textureColor;
+        //                lighting.rgb = vec3(0.8,0.8,0.255);
+        outColor = lighting;//* textureColor;
+        //        outColor = vec4(lighting.rgb * vec3(0.8, 0.8, 0.255), 1.0f)* textureColor;
     }
-    if (colorType == 1){
+    if (colorType == 6){
 
         if (spotEffect > spotCutOff)  lighting = mix(ambient, ambient  + attentuation * (spec + diffuse), blend);
-        outColor = lighting;//* textureColor;
-    }//;
+        outColor = lighting; //* textureColor;
+    }
 
     //light color
-    if (colorType == 7) outColor = vec4(1);
+    if (colorType == 7) outColor = vec4(vec3(0.8, 0.8, 0.255), 1.0f);
 
 
 }
