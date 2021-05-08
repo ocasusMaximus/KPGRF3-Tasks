@@ -68,10 +68,7 @@ class GridFactory {
 
         for (int i = 0; i < n - 1; i++) {
             int rowOffset = i * m;
-//            int reverseIndex= 0;
 
-
-//            System.out.println("Radek");
             for (int j = 0; j < m-1; j++) {
 
 
@@ -83,43 +80,27 @@ class GridFactory {
                 System.out.println(j + m + rowOffset);
                 System.out.println(j + 1 + rowOffset);
                 System.out.println(j + m + 1 + rowOffset);
-//                if(j == m-2)  {
-////                    System.out.println(j + m + 1 + rowOffset);
-////                    System.out.println(j + m + 1 + rowOffset);
-////                    System.out.println(j + m + 1 + rowOffset);
-//
-//                    reverseIndex = j + m + 1 + rowOffset;
-//                }
+                if(j == m-2)  {
+                    System.out.println(j + m + 1 + rowOffset);
+                    System.out.println(j + m + 1 + rowOffset);
+                    System.out.println(j + m + 1 + rowOffset);
 
-//                System.out.println("----------------------------------");
-//
-//                ib[index2++] = j + rowOffset;
-//                ib[index2++] = j + m + rowOffset;
-//                ib[index2++] = j + 1 + rowOffset;
-//
-//                ib[index2++] = j + m + rowOffset;
-//                ib[index2++] = j + 1 + rowOffset;
-//                ib[index2++] = j + m + 1 + rowOffset;
+
+                }
+
+
 
             }
 
 
 
 
-//            System.out.println("***************************");
 
         }
         return null;
-//
-//        OGLBuffers.Attrib[] attributes = {
-//                new OGLBuffers.Attrib("inPosition", 2)
-//        };
-//        return new OGLBuffers(vb, attributes, ib);
+
     }
 
-//    public static void main(String[] args) {
-////        generateGridTriangleList(4, 4);
-//        generateGridTriangleStrips(4, 4);
-//    }
+
 
 }

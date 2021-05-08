@@ -84,24 +84,14 @@ public class LwjglWindow {
         glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE); // the window will stay hidden after creation
         glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE); // the window will be resizable
 
-//        String text = renderer.getClass().getName();
         String text = "KPGRF3 Task 1";
-//        text = text.substring(0, text.lastIndexOf('.'));
+
         // Create the window
         window = glfwCreateWindow(WIDTH, HEIGHT, text, NULL, NULL);
 
-        ClassLoader classLoader = getClass().getClassLoader();
-
-//        Image icon = Importer.extractImageFromImagePath(classLoader.getResource("icon.png").getFile());
-//        assert icon != null;
-//        GLFWImage.Buffer gb = GLFWImage.malloc(icon.getHeight()*icon.getWidth()*4);
-//        byte[] iconData = ((DataBufferByte) icon.getRaster().getDataBuffer()).getData();
-//        ByteBuffer ib = createByteBuffer(iconData.length);
-//        GLFWImage iconGI = GLFWImage.create().set(icon.getWidth(), icon.getHeight(), ib);
-//        gb.put(0, iconGI);
 
 
-//        glfwSetWindowIcon(window, gb);
+
         if (window == NULL) {
             throw new RuntimeException("Failed to create the GLFW window");
         }
