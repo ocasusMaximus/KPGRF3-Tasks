@@ -22,7 +22,7 @@ public class Renderer extends AbstractRenderer {
 
     private int shaderProgramMain, shaderProgramPost;
     private OGLBuffers buffersMain;
-    private int viewLocation, projectionLocation, typeLocation, modelLocation, locLightPosition, locEyePosition;
+    private int viewLocation, projectionLocation, typeLocation, modelLocation, yellowLocLightPosition, locEyePosition;
     private Camera camera;
     private Camera camera2;
     private Mat4 projection;
@@ -44,7 +44,8 @@ public class Renderer extends AbstractRenderer {
     Mat4 model;
     Mat4 rotation;
     Mat4 translation;
-    Vec3D lightPos;
+    Vec3D yellowLightPos;
+    Vec3D redLightPos;
     float colorType = 0;
     int colorTypeLoc;
     Vec3D eyePosition;
@@ -53,8 +54,13 @@ public class Renderer extends AbstractRenderer {
     int shakeObjects;
     private int shake;
     private int locTimePostProc;
-    private Mat4 lightTransl;
+    private Mat4 yellowLightTransl;
     private double lightMoveSpeed;
+
+    private int spotCutOffLoc;
+    private float spotCutOff;
+    private int redLocLightPosition;
+    private Mat4 redLightTransl;
 
 
     @Override
@@ -75,10 +81,11 @@ public class Renderer extends AbstractRenderer {
         modelLocation = glGetUniformLocation(shaderProgramMain, "model");
         projectionLocation = glGetUniformLocation(shaderProgramMain, "projection");
         colorTypeLoc = glGetUniformLocation(shaderProgramMain, "colorType");
-        locLightPosition = glGetUniformLocation(shaderProgramMain, "lightPosition");
+        yellowLocLightPosition = glGetUniformLocation(shaderProgramMain, "yellowLightPosition");
+        redLocLightPosition = glGetUniformLocation(shaderProgramMain, "redLightPosition");
         locEyePosition = glGetUniformLocation(shaderProgramMain, "eyePosition");
         locTime = glGetUniformLocation(shaderProgramMain, "time");
-
+        spotCutOffLoc = glGetUniformLocation(shaderProgramMain, "spotCutOff");
 
         shaderProgramPost = ShaderUtils.loadProgram("/post");
 
@@ -99,8 +106,12 @@ public class Renderer extends AbstractRenderer {
 
         eyePosition = camera.getEye();
 
+        spotCutOff = 0.98f;
 
-        lightPos = new Vec3D(2, 2, 1.5);
+        yellowLightPos = new Vec3D(2, 2, 1.5);
+
+        redLightPos = new Vec3D(3, 2, 1.5);
+
         projection = new Mat4PerspRH(
                 Math.PI / 3,
                 height / (float) width,
@@ -112,15 +123,6 @@ public class Renderer extends AbstractRenderer {
         rotation = new Mat4Identity();
         translation = new Mat4Identity();
 
-//        float[] vertexBufferData = {
-//                -1, -1,
-//                1, 0,
-//                0, 1,
-//        };
-//        int[] indexBufferData = {0, 1, 2};
-//        OGLBuffers.Attrib[] attributes = {
-//                new OGLBuffers.Attrib("inPosition", 2),
-//        };
 
         buffersMain = GridFactory.generateGridTriangleList(50, 50);
         buffersPost = GridFactory.generateGridTriangleList(2, 2);
@@ -129,20 +131,21 @@ public class Renderer extends AbstractRenderer {
         renderTarget = new OGLRenderTarget(1024, 1024);
 
         try {
-            textureForObjects = new OGLTexture2D("./sky.jpg");
+            textureForObjects = new OGLTexture2D("sky.jpg");
         } catch (IOException e) {
             e.printStackTrace();
         }
 
         viewer = new OGLTexture2D.Viewer();
         textRenderer = new OGLTextRenderer(width, height);
-        lightTransl = new Mat4Transl(lightPos);
+        yellowLightTransl = new Mat4Transl(yellowLightPos);
+        redLightTransl = new Mat4Transl(redLightPos);
     }
 
     @Override
     public void display() {
         glEnable(GL_DEPTH_TEST);
-        // text-renderer disables depth-test (z-buffer)
+
 
         if (polygonMode) {
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -161,14 +164,14 @@ public class Renderer extends AbstractRenderer {
         textRenderer.addStr2D(3, 15, "KPGRF3 TASK 1");
         textRenderer.addStr2D(3, 30, "JAN ZAHRADNÍK");
         textRenderer.addStr2D(3, 45, "FIM UHK 2021");
-        textRenderer.addStr2D(width - 500, 15, "Controls: [WASD] Movement, [LMB] View rotation, [O,P] Change models, [C] Change camera");
-        textRenderer.addStr2D(width - 500, 30, "[Q,E] Change projection, [K,L] Change texture, [J] Change polygon mode, [R] Reset ");
+        textRenderer.addStr2D(width - 700, 15, "Controls: [WASD] Movement, [LMB] View rotation, [RMB] Model rotation, [MB4] Model translation, [O,P] Change models, [R] Reset");
+        textRenderer.addStr2D(width - 700, 30, "[C] Change camera, [Q,E] Change projection, [K,L] Change color mode, [J] Change polygon mode,[U,I] Change Spot cut off");
         textRenderer.addStr2D(width - 90, height - 3, " (c) PGRF UHK");
     }
 
     private void renderMain() {
         glUseProgram(shaderProgramMain);
-        renderTarget.bind(); // render to texture
+        renderTarget.bind();
 
         if (cameraType) {
             glUniformMatrix4fv(viewLocation, false, camera.getViewMatrix().floatArray());
@@ -182,46 +185,62 @@ public class Renderer extends AbstractRenderer {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         glUniformMatrix4fv(projectionLocation, false, ToFloatArray.convert(projection));
-        glUniform3fv(locLightPosition, ToFloatArray.convert(lightPos));
+        glUniform3fv(yellowLocLightPosition, ToFloatArray.convert(yellowLightPos));
+        glUniform3fv(redLocLightPosition, ToFloatArray.convert(redLightPos));
         glUniform3fv(locEyePosition, ToFloatArray.convert(eyePosition));
+        glUniform1f(spotCutOffLoc, spotCutOff);
+
 
         glUniformMatrix4fv(modelLocation, false, ToFloatArray.convert(model));
 
         textureForObjects.bind(shaderProgramMain, "textureForObjects", 0);
 
+        time += 0.01;
+        glUniform1f(locTime, time);
+
+
         glUniform1f(typeLocation, type);
         glUniform1f(colorTypeLoc, colorType);
         buffersMain.draw(GL_TRIANGLES, shaderProgramMain);
 
-        time += 0.01;
-        glUniform1f(locTime, time);
+
+
+
         lightMoveSpeed += 0.03;
-        //TODO:zeptat se na konzultaci jestli takto spravne
-        //TODO: pri rotaci se meni i ta pozice svetla
 
-        double x = 2 * Math.cos(lightMoveSpeed);
-        double y = 2 * Math.sin(lightMoveSpeed);
-        lightPos = new Vec3D(x, y, 1.5);
 
-//        lightPos.mul(new Mat3Transl2D(new Vec2D(1,0)));
-        lightTransl = new Mat4Transl(lightPos);
+        double yellowX = 2 * Math.sin(lightMoveSpeed);
+        double yellowY = 2 * Math.cos(lightMoveSpeed);
+        yellowLightPos = new Vec3D(yellowX, yellowY, 1.5);
 
-//TODO:pokud bych chtel 2 koule svetelny tak musim vse zdublovat i ve shaderech
-        // svetelna koule
+        yellowLightTransl = new Mat4Transl(yellowLightPos);
+
+
+        // svetelna koule - žlutá
         glUniform1f(typeLocation, 8f);
-        glUniform1f(colorTypeLoc, 7f);
+        glUniform1f(colorTypeLoc, 8f);
 
-        glUniformMatrix4fv(modelLocation, false, ToFloatArray.convert(lightTransl));
+        glUniformMatrix4fv(modelLocation, false, ToFloatArray.convert(yellowLightTransl));
         buffersMain.draw(GL_TRIANGLES, shaderProgramMain);
 
 
-//        model
 
-        //TODO: reflektorovy zdroj svetla spotDirection =-lightPosition;
+        double redX = 2 * Math.sin(-lightMoveSpeed);
+        double redY = 2 * Math.cos(-lightMoveSpeed);
 
-//        buffersMain.draw(GL_TRIANGLES,shaderProgramMain);
+        redLightPos = new Vec3D(redX, redY, 1.5);
 
-//        glUniformMatrix4fv(typeLocation,1,GL_FALSE,(const GLfloat*) mvp);
+        redLightTransl = new Mat4Transl(redLightPos);
+
+        // svetelna koule - červená
+        glUniform1f(typeLocation, 8f);
+        glUniform1f(colorTypeLoc, 9f);
+        glUniformMatrix4fv(modelLocation, false, ToFloatArray.convert(redLightTransl));
+        buffersMain.draw(GL_TRIANGLES, shaderProgramMain);
+
+
+
+
     }
 
     private void renderPostProcessing() {
@@ -258,7 +277,7 @@ public class Renderer extends AbstractRenderer {
                     oldMy = y;
 
                 } else if (button == GLFW_MOUSE_BUTTON_RIGHT) {
-                    //rotace
+
                     double rotX = (oldMx - x) / 200.0;
                     double rotY = (oldMy - y) / 200.0;
                     rotation = rotation.mul(new Mat4RotXYZ(rotX, 0, rotY));
@@ -269,9 +288,6 @@ public class Renderer extends AbstractRenderer {
                     double movX = (oldMx - x) / 50;
                     double movY = (oldMy - y) / 50;
                     translation = translation.mul(new Mat4Transl(movX, movY, 0));
-//                    rotation = new Mat4Identity();
-                    //translace
-//                    model = model.mul(translation).mul(rotation);
                     model = rotation.mul(translation);
                     oldMx = x;
                     oldMy = y;
@@ -296,6 +312,7 @@ public class Renderer extends AbstractRenderer {
 
         }
     };
+
 
     private final GLFWKeyCallback setKeyFallback = new GLFWKeyCallback() {
         @Override
@@ -339,14 +356,13 @@ public class Renderer extends AbstractRenderer {
                         }
 
                         break;
-                    case GLFW_KEY_O:
+                    case GLFW_KEY_P:
                         if (type < 7) type += 1;
                         break;
-                    case GLFW_KEY_P:
+                    case GLFW_KEY_O:
                         if (type > 0) type -= 1;
                         break;
                     case GLFW_KEY_Q:
-                        //zmenit na persp
                         projection = new Mat4PerspRH(
                                 Math.PI / 3,
                                 height / (float) width,
@@ -356,14 +372,13 @@ public class Renderer extends AbstractRenderer {
 
                         break;
                     case GLFW_KEY_E:
-                        //zmeni na ortho
                         projection = new Mat4OrthoRH(2.5, 2.5, 0.1, 20);
                         break;
                     case GLFW_KEY_K:
                         if (colorType > 0) colorType -= 1;
                         break;
                     case GLFW_KEY_L:
-                        if (colorType < 6) colorType += 1;
+                        if (colorType < 7) colorType += 1;
                         break;
                     case GLFW_KEY_C:
                         cameraType = !cameraType;
@@ -377,13 +392,27 @@ public class Renderer extends AbstractRenderer {
                         rotation = new Mat4Identity();
                         translation = new Mat4Identity();
                         break;
-                    //TODO: shake effect optional
-                    case GLFW_KEY_H:
-                        shake = 1;
+
+                    case GLFW_KEY_U:
+                        if (spotCutOff < 1.0) {
+                            spotCutOff += 0.01;
+                        }
+
                         break;
-//                    case GLFW_KEY_G:
-//                        shake = 0;
+                    case GLFW_KEY_I:
+                        if (spotCutOff > 0.9) {
+                            spotCutOff -= 0.01;
+//
+                        }
+                        break;
+
+//                    //TODO: shake effect optional
+//                    case GLFW_KEY_H:
+//                        shake = 1;
 //                        break;
+////                    case GLFW_KEY_G:
+////                        shake = 0;
+////                        break;
                     case GLFW_KEY_F:
                         buffersMain = GridFactory.generateGridTriangleList(50, 50);
                         buffersPost = GridFactory.generateGridTriangleList(2, 2);

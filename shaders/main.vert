@@ -8,19 +8,22 @@ uniform float type;
 uniform float time;
 
 
-uniform vec3 lightPosition;
+uniform vec3 yellowLightPosition;
+uniform vec3 redLightPosition;
 uniform vec3 eyePosition;
 
-
+uniform  float spotCutOff;
 
 uniform float colorType;
 out vec2 texCoord;
 
 out vec3 objectPosition;
 out vec3 normalDirection;
-out vec3 lightDirection;
+out vec3 yellowLightDirection;
+out vec3 redLightDirection;
 out vec3 eyeVec;
-out float distance;
+out float yellowLightDistance;
+out float redLightDistance;
 
 
 
@@ -77,17 +80,6 @@ vec3 getDonutNormal(vec2 vec) {
 }
 
 
-////sferic
-//vec3 getSombrero(vec2 inPos) {
-//    float s = PI * 0.5 - PI * inPos.x *2;
-//    float t = 2 * PI * inPos.y;
-//
-//    float x =  t*cos(s);
-//    float y =  t*sin(s);
-//    float z = 2*sin(t)/2;
-//
-//    return vec3(x, y, z);
-//}
 
 //cylinder
 vec3 getFunnel(vec2 vec) {
@@ -183,23 +175,13 @@ vec3 getBananaPeelNormal(vec2 vec) {
     return cross(u, v);
 }
 
-vec3 getPlane(vec2 vec) {
-    return vec3(vec * 2.5, -1);
-}
-vec3 getPlaneNormal(vec2 vec) {
-    vec3 u = getPlane(vec + vec2(0.001, 0)) - getPlane(vec - vec2(0.001, 0));
-    vec3 v = getPlane(vec + vec2(0, 0.001)) - getPlane(vec - vec2(0, 0.001));
-    return cross(u, v);
-}
-
-
 
 
 
 
 void main() {
     texCoord = inPosition;
-    // grid je <0;1> - chci <-1;1>
+
     vec2 position = inPosition * 2 - 1;
 
 
@@ -245,19 +227,22 @@ void main() {
     }
 
 
-    //    finalPosition = getLightSphere();
+
 
     objectPosition = finalPosition;
     normalDirection = inverse(transpose(mat3(model))) * normal;
 
    vec4 finalPos4 = model * vec4(finalPosition,1.0);
-    lightDirection = normalize(lightPosition - finalPos4.xyz);
-    //TODO: Reflektorovy zdroj - lightVec je ld z prednasky shaders
+    yellowLightDirection = normalize(yellowLightPosition - finalPos4.xyz);
+    redLightDirection = normalize(redLightPosition - finalPos4.xyz);
+
 
     eyeVec = normalize(eyePosition - finalPos4.xyz);
-    //    distance = length(lightDirection);
-    distance = length(lightPosition - finalPos4.xyz);
-    //TODO: pridat dalsi kameru kvuli modifikaci polohy svetla, aby svetlo jezdilo sem a tam
+
+    yellowLightDistance = length(yellowLightPosition - finalPos4.xyz);
+    redLightDistance = length(redLightPosition - finalPos4.xyz);
+
+
 
 
 

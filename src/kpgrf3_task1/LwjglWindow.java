@@ -17,8 +17,8 @@ import static org.lwjgl.system.MemoryUtil.NULL;
 
 public class LwjglWindow {
 
-    private static int WIDTH = 600;
-    private static int HEIGHT = 400;
+    private static int WIDTH = 1280;
+    private static int HEIGHT = 720;
 
     private long window; // the window handle
     private final AbstractRenderer renderer;
