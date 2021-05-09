@@ -61,6 +61,7 @@ public class Renderer extends AbstractRenderer {
     private float spotCutOff;
     private int redLocLightPosition;
     private Mat4 redLightTransl;
+    private boolean triangleStrip = false;
 
 
     @Override
@@ -201,7 +202,11 @@ public class Renderer extends AbstractRenderer {
 
         glUniform1f(typeLocation, type);
         glUniform1f(colorTypeLoc, colorType);
-        buffersMain.draw(GL_TRIANGLES, shaderProgramMain);
+        if(triangleStrip){
+            buffersMain.draw(GL_TRIANGLE_STRIP, shaderProgramMain);
+        } else{
+            buffersMain.draw(GL_TRIANGLES, shaderProgramMain);
+        }
 
 
 
@@ -221,7 +226,12 @@ public class Renderer extends AbstractRenderer {
         glUniform1f(colorTypeLoc, 8f);
 
         glUniformMatrix4fv(modelLocation, false, ToFloatArray.convert(yellowLightTransl));
-        buffersMain.draw(GL_TRIANGLES, shaderProgramMain);
+        if(triangleStrip){
+            buffersMain.draw(GL_TRIANGLE_STRIP, shaderProgramMain);
+        } else{
+            buffersMain.draw(GL_TRIANGLES, shaderProgramMain);
+        }
+
 
 
 
@@ -236,7 +246,11 @@ public class Renderer extends AbstractRenderer {
         glUniform1f(typeLocation, 8f);
         glUniform1f(colorTypeLoc, 9f);
         glUniformMatrix4fv(modelLocation, false, ToFloatArray.convert(redLightTransl));
-        buffersMain.draw(GL_TRIANGLES, shaderProgramMain);
+        if(triangleStrip){
+            buffersMain.draw(GL_TRIANGLE_STRIP, shaderProgramMain);
+        } else{
+            buffersMain.draw(GL_TRIANGLES, shaderProgramMain);
+        }
 
 
 
@@ -250,7 +264,11 @@ public class Renderer extends AbstractRenderer {
         glViewport(0, 0, width, height); // must reset back - render target is setting its own viewport
 
         renderTarget.getColorTexture().bind(shaderProgramPost, "textureRendered", 0);
-        buffersPost.draw(GL_TRIANGLES, shaderProgramPost);
+        if(triangleStrip){
+            buffersPost.draw(GL_TRIANGLE_STRIP, shaderProgramMain);
+        } else{
+            buffersPost.draw(GL_TRIANGLES, shaderProgramMain);
+        }
         glUniform1f(locHeight, height);
         time += 0.01;
         glUniform1f(locTimePostProc, time);
@@ -416,10 +434,13 @@ public class Renderer extends AbstractRenderer {
                     case GLFW_KEY_F:
                         buffersMain = GridFactory.generateGridTriangleList(50, 50);
                         buffersPost = GridFactory.generateGridTriangleList(2, 2);
+                        triangleStrip = !triangleStrip;
                         break;
                     case GLFW_KEY_G:
+
                         buffersMain = GridFactory.generateGridTriangleStrips(50, 50);
                         buffersPost = GridFactory.generateGridTriangleStrips(2, 2);
+                        triangleStrip = !triangleStrip;
                         break;
 
 

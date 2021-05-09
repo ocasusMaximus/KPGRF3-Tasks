@@ -1,7 +1,9 @@
 package kpgrf3_task1;
-//package lvl2advanced.p01gui.p01simple;
+
 
 import lwjglutils.OGLBuffers;
+
+
 
 class GridFactory {
 
@@ -63,42 +65,33 @@ class GridFactory {
             }
         }
 
-        int[] ib = new int[2 * m * (n - 1)];
+        int[] ib = new int[m * n + (n - 1) + (m - 1) * (n - 1) - 1];
         int index2 = 0;
-
         for (int i = 0; i < n - 1; i++) {
             int rowOffset = i * m;
-
-            for (int j = 0; j < m-1; j++) {
-
-
-
-                System.out.println(j + rowOffset);
-                System.out.println(j + m + rowOffset);
-                System.out.println(j + 1 + rowOffset);
-
-                System.out.println(j + m + rowOffset);
-                System.out.println(j + 1 + rowOffset);
-                System.out.println(j + m + 1 + rowOffset);
-                if(j == m-2)  {
-                    System.out.println(j + m + 1 + rowOffset);
-                    System.out.println(j + m + 1 + rowOffset);
-                    System.out.println(j + m + 1 + rowOffset);
-
-
+            if (i % 2 == 0) {
+                for (int j = 0; j < m; j++) {
+                    ib[index2++] = rowOffset + j;
+                    ib[index2++] = rowOffset + j + m;
+                    if (j == m - 1) ib[index2++] = rowOffset + j + m;
                 }
 
-
+            } else {
+                for (int col = m - 1; col >= 0; col--) {
+                    ib[index2++] = rowOffset + col;
+                    ib[index2++] = rowOffset + col + m;
+                    if (col == 0) ib[index2++] = rowOffset + col + m;
+                }
 
             }
 
 
-
-
-
         }
-        return null;
 
+        OGLBuffers.Attrib[] attributes = {
+                new OGLBuffers.Attrib("inPosition", 2)
+        };
+        return new OGLBuffers(vb, attributes, ib);
     }
 
 
