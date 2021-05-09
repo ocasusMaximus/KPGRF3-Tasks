@@ -166,7 +166,8 @@ public class Renderer extends AbstractRenderer {
         textRenderer.addStr2D(3, 30, "JAN ZAHRADNÍK");
         textRenderer.addStr2D(3, 45, "FIM UHK 2021");
         textRenderer.addStr2D(width - 700, 15, "Controls: [WASD] Movement, [LMB] View rotation, [RMB] Model rotation, [MB4] Model translation, [O,P] Change models, [R] Reset");
-        textRenderer.addStr2D(width - 700, 30, "[C] Change camera, [Q,E] Change projection, [K,L] Change color mode, [J] Change polygon mode,[U,I] Change Spot cut off");
+        textRenderer.addStr2D(width - 700, 30, "[C] Change camera, [Q,E] Change projection, [K,L] Change color mode, [J] Change polygon mode, [F,G] Triangles/Triangle strips");
+        textRenderer.addStr2D(width - 700, 45, "[U,I] Change Spot cut off");
         textRenderer.addStr2D(width - 90, height - 3, " (c) PGRF UHK");
     }
 
@@ -420,27 +421,21 @@ public class Renderer extends AbstractRenderer {
                     case GLFW_KEY_I:
                         if (spotCutOff > 0.9) {
                             spotCutOff -= 0.01;
-//
+
                         }
                         break;
 
-//                    //TODO: shake effect optional
-//                    case GLFW_KEY_H:
-//                        shake = 1;
-//                        break;
-////                    case GLFW_KEY_G:
-////                        shake = 0;
-////                        break;
+
                     case GLFW_KEY_F:
                         buffersMain = GridFactory.generateGridTriangleList(50, 50);
                         buffersPost = GridFactory.generateGridTriangleList(2, 2);
-                        triangleStrip = !triangleStrip;
+                        triangleStrip = false;
                         break;
                     case GLFW_KEY_G:
 
                         buffersMain = GridFactory.generateGridTriangleStrips(50, 50);
                         buffersPost = GridFactory.generateGridTriangleStrips(2, 2);
-                        triangleStrip = !triangleStrip;
+                        triangleStrip = true;
                         break;
 
 
