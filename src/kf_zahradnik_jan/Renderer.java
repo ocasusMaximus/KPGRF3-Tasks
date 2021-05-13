@@ -52,7 +52,7 @@ public class Renderer extends AbstractRenderer {
     int locHeight;
     boolean polygonMode = true;
     int shakeObjects;
-    private int shake;
+
     private int locTimePostProc;
     private Mat4 yellowLightTransl;
     private double lightMoveSpeed;
@@ -62,6 +62,13 @@ public class Renderer extends AbstractRenderer {
     private int redLocLightPosition;
     private Mat4 redLightTransl;
     private boolean triangleStrip = false;
+
+    private int shake;
+    private float postColorType = 0;
+    private int postProcEffectStrengthLoc;
+    private float postProcEffectStrength;
+    private int locWidth;
+    private int postColorTypeLoc;
 
 
     @Override
@@ -91,8 +98,11 @@ public class Renderer extends AbstractRenderer {
         shaderProgramPost = ShaderUtils.loadProgram("/post");
 
         locHeight = glGetUniformLocation(shaderProgramPost, "height");
+        locWidth = glGetUniformLocation(shaderProgramPost, "width");
         shakeObjects = glGetUniformLocation(shaderProgramPost, "shake");
         locTimePostProc = glGetUniformLocation(shaderProgramPost, "time");
+        postProcEffectStrengthLoc = glGetUniformLocation(shaderProgramPost, "effectStrength");
+        postColorTypeLoc = glGetUniformLocation(shaderProgramPost, "postColorType");
 
         camera = new Camera()
                 .withPosition(new Vec3D(3, 3, 3))
@@ -128,7 +138,7 @@ public class Renderer extends AbstractRenderer {
         buffersMain = GridFactory.generateGridTriangleList(50, 50);
         buffersPost = GridFactory.generateGridTriangleList(2, 2);
 
-
+        postProcEffectStrength = 1.0f;
         renderTarget = new OGLRenderTarget(1024, 1024);
 
         try {
@@ -203,13 +213,11 @@ public class Renderer extends AbstractRenderer {
 
         glUniform1f(typeLocation, type);
         glUniform1f(colorTypeLoc, colorType);
-        if(triangleStrip){
+        if (triangleStrip) {
             buffersMain.draw(GL_TRIANGLE_STRIP, shaderProgramMain);
-        } else{
+        } else {
             buffersMain.draw(GL_TRIANGLES, shaderProgramMain);
         }
-
-
 
 
         lightMoveSpeed += 0.03;
@@ -227,13 +235,11 @@ public class Renderer extends AbstractRenderer {
         glUniform1f(colorTypeLoc, 8f);
 
         glUniformMatrix4fv(modelLocation, false, ToFloatArray.convert(yellowLightTransl));
-        if(triangleStrip){
+        if (triangleStrip) {
             buffersMain.draw(GL_TRIANGLE_STRIP, shaderProgramMain);
-        } else{
+        } else {
             buffersMain.draw(GL_TRIANGLES, shaderProgramMain);
         }
-
-
 
 
         double redX = 2 * Math.sin(-lightMoveSpeed);
@@ -247,13 +253,11 @@ public class Renderer extends AbstractRenderer {
         glUniform1f(typeLocation, 8f);
         glUniform1f(colorTypeLoc, 9f);
         glUniformMatrix4fv(modelLocation, false, ToFloatArray.convert(redLightTransl));
-        if(triangleStrip){
+        if (triangleStrip) {
             buffersMain.draw(GL_TRIANGLE_STRIP, shaderProgramMain);
-        } else{
+        } else {
             buffersMain.draw(GL_TRIANGLES, shaderProgramMain);
         }
-
-
 
 
     }
@@ -265,15 +269,19 @@ public class Renderer extends AbstractRenderer {
         glViewport(0, 0, width, height); // must reset back - render target is setting its own viewport
 
         renderTarget.getColorTexture().bind(shaderProgramPost, "textureRendered", 0);
-        if(triangleStrip){
+        if (triangleStrip) {
             buffersPost.draw(GL_TRIANGLE_STRIP, shaderProgramMain);
-        } else{
+        } else {
             buffersPost.draw(GL_TRIANGLES, shaderProgramMain);
         }
         glUniform1f(locHeight, height);
+        glUniform1f(locWidth, width);
+        glUniform1f(postColorTypeLoc, postColorType);
+
         time += 0.01;
         glUniform1f(locTimePostProc, time);
         glUniform1i(shakeObjects, shake);
+        glUniform1f(postProcEffectStrengthLoc, postProcEffectStrength);
 
     }
 
@@ -331,6 +339,7 @@ public class Renderer extends AbstractRenderer {
 
         }
     };
+
 
 
     private final GLFWKeyCallback setKeyFallback = new GLFWKeyCallback() {
@@ -436,6 +445,14 @@ public class Renderer extends AbstractRenderer {
                         buffersMain = GridFactory.generateGridTriangleStrips(50, 50);
                         buffersPost = GridFactory.generateGridTriangleStrips(2, 2);
                         triangleStrip = true;
+                        break;
+
+                    case GLFW_KEY_V:
+                        if (postColorType > 0) postColorType -= 1;
+                        break;
+
+                    case GLFW_KEY_B:
+                        if (postColorType < 3) postColorType += 1;
                         break;
 
 

@@ -227,7 +227,7 @@ void main() {
     }
 
 
-
+    vec2 a = vec2(float (2));
 
     objectPosition = finalPosition;
     normalDirection = inverse(transpose(mat3(model))) * normal;

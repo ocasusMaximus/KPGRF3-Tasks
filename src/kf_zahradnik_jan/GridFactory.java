@@ -88,6 +88,7 @@ class GridFactory {
 
         }
 
+
         OGLBuffers.Attrib[] attributes = {
                 new OGLBuffers.Attrib("inPosition", 2)
         };
