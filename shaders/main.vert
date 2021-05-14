@@ -226,6 +226,10 @@ void main() {
         finalPosition = getLightSphere(position);
     }
 
+    if (type == 10){
+        finalPosition = vec3(10,10,10);
+    }
+
 
     vec2 a = vec2(float (2));
 

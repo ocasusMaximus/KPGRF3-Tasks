@@ -29,6 +29,9 @@ public class Renderer extends AbstractRenderer {
     private OGLTexture2D textureForObjects;
     private OGLBuffers buffersPost;
 
+
+    private int setKey;
+    private int setAction;
     private boolean mousePressed = false;
     private double oldMx, oldMy;
     private OGLRenderTarget renderTarget;
@@ -69,6 +72,10 @@ public class Renderer extends AbstractRenderer {
     private float postProcEffectStrength;
     private int locWidth;
     private int postColorTypeLoc;
+    private int postRedLineLoc;
+    private float postRedLine;
+    private int postTypeLocation;
+    private float postType;
 
 
     @Override
@@ -97,12 +104,14 @@ public class Renderer extends AbstractRenderer {
 
         shaderProgramPost = ShaderUtils.loadProgram("/post");
 
+        postTypeLocation = glGetUniformLocation(shaderProgramPost, "postType");
         locHeight = glGetUniformLocation(shaderProgramPost, "height");
         locWidth = glGetUniformLocation(shaderProgramPost, "width");
         shakeObjects = glGetUniformLocation(shaderProgramPost, "shake");
         locTimePostProc = glGetUniformLocation(shaderProgramPost, "time");
         postProcEffectStrengthLoc = glGetUniformLocation(shaderProgramPost, "effectStrength");
         postColorTypeLoc = glGetUniformLocation(shaderProgramPost, "postColorType");
+        postRedLineLoc = glGetUniformLocation(shaderProgramPost, "redLine");
 
         camera = new Camera()
                 .withPosition(new Vec3D(3, 3, 3))
@@ -138,6 +147,7 @@ public class Renderer extends AbstractRenderer {
         buffersMain = GridFactory.generateGridTriangleList(50, 50);
         buffersPost = GridFactory.generateGridTriangleList(2, 2);
 
+
         postProcEffectStrength = 1.0f;
         renderTarget = new OGLRenderTarget(1024, 1024);
 
@@ -146,6 +156,8 @@ public class Renderer extends AbstractRenderer {
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+        postRedLine = width /2.0f;
 
         viewer = new OGLTexture2D.Viewer();
         textRenderer = new OGLTextRenderer(width, height);
@@ -260,6 +272,8 @@ public class Renderer extends AbstractRenderer {
         }
 
 
+
+
     }
 
     private void renderPostProcessing() {
@@ -269,19 +283,26 @@ public class Renderer extends AbstractRenderer {
         glViewport(0, 0, width, height); // must reset back - render target is setting its own viewport
 
         renderTarget.getColorTexture().bind(shaderProgramPost, "textureRendered", 0);
+
+        glUniform1f(locHeight, height);
+        glUniform1f(locWidth, width);
+        glUniform1f(postTypeLocation, postType);
+        glUniform1f(postColorTypeLoc, postColorType);
+
+        glUniform1f(postRedLineLoc, postRedLine);
+
+        time += 0.01;
+        glUniform1f(locTimePostProc, time);
+
+        glUniform1i(shakeObjects, shake);
+        glUniform1f(postProcEffectStrengthLoc, postProcEffectStrength);
+
+
         if (triangleStrip) {
             buffersPost.draw(GL_TRIANGLE_STRIP, shaderProgramMain);
         } else {
             buffersPost.draw(GL_TRIANGLES, shaderProgramMain);
         }
-        glUniform1f(locHeight, height);
-        glUniform1f(locWidth, width);
-        glUniform1f(postColorTypeLoc, postColorType);
-
-        time += 0.01;
-        glUniform1f(locTimePostProc, time);
-        glUniform1i(shakeObjects, shake);
-        glUniform1f(postProcEffectStrengthLoc, postProcEffectStrength);
 
     }
 
@@ -290,8 +311,18 @@ public class Renderer extends AbstractRenderer {
 
         @Override
         public void invoke(long window, double x, double y) {
+
             if (mousePressed) {
-                if (button == GLFW_MOUSE_BUTTON_LEFT) {
+                if(setKey == GLFW_KEY_LEFT_CONTROL && (setAction == GLFW_PRESS || setAction == GLFW_REPEAT)){
+                    if (button == GLFW_MOUSE_BUTTON_LEFT) {
+
+                      postRedLine = (float) x;
+                    }
+                    oldMx = x;
+
+                }else if (button == GLFW_MOUSE_BUTTON_LEFT) {
+
+
                     if (cameraType) {
                         camera = camera.addAzimuth(Math.PI / 2 * (oldMx - x) / width);
                         camera = camera.addZenith(Math.PI / 2 * (oldMy - y) / height);
@@ -319,6 +350,9 @@ public class Renderer extends AbstractRenderer {
                     oldMx = x;
                     oldMy = y;
 
+
+
+
                 }
 
 
@@ -345,12 +379,15 @@ public class Renderer extends AbstractRenderer {
     private final GLFWKeyCallback setKeyFallback = new GLFWKeyCallback() {
         @Override
         public void invoke(long window, int key, int scancode, int action, int mods) {
+            setKey = key;
+            setAction = action;
             if (key == GLFW_KEY_ESCAPE && action == GLFW_RELEASE) {
                 // We will detect this in our rendering loop
                 glfwSetWindowShouldClose(window, true);
             }
 
             if (action == GLFW_PRESS || action == GLFW_REPEAT) {
+
                 switch (key) {
                     case GLFW_KEY_W:
                         if (cameraType) {
@@ -452,11 +489,16 @@ public class Renderer extends AbstractRenderer {
                         break;
 
                     case GLFW_KEY_B:
-                        if (postColorType < 3) postColorType += 1;
+                        if (postColorType < 4) postColorType += 1;
                         break;
 
 
+
                 }
+
+
+
+
             }
         }
     };
