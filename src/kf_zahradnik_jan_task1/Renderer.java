@@ -1,4 +1,4 @@
-package kf_zahradnik_jan;
+package kf_zahradnik_jan_task1;
 //package lvl2advanced.p01gui.p01simple;
 
 import lwjglutils.*;
@@ -29,9 +29,6 @@ public class Renderer extends AbstractRenderer {
     private OGLTexture2D textureForObjects;
     private OGLBuffers buffersPost;
 
-
-    private int setKey;
-    private int setAction;
     private boolean mousePressed = false;
     private double oldMx, oldMy;
     private OGLRenderTarget renderTarget;
@@ -54,8 +51,6 @@ public class Renderer extends AbstractRenderer {
     Vec3D eyePosition;
     int locHeight;
     boolean polygonMode = true;
-    int shakeObjects;
-
     private int locTimePostProc;
     private Mat4 yellowLightTransl;
     private double lightMoveSpeed;
@@ -65,17 +60,6 @@ public class Renderer extends AbstractRenderer {
     private int redLocLightPosition;
     private Mat4 redLightTransl;
     private boolean triangleStrip = false;
-
-    private int shake;
-    private float postColorType = 0;
-    private int postProcEffectStrengthLoc;
-    private float postProcEffectStrength;
-    private int locWidth;
-    private int postColorTypeLoc;
-    private int postRedLineLoc;
-    private float postRedLine;
-    private int postTypeLocation;
-    private float postType;
 
 
     @Override
@@ -89,7 +73,7 @@ public class Renderer extends AbstractRenderer {
         glClearColor(0.211f, 0.211f, 0.211f, 1f);
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
-        shaderProgramMain = ShaderUtils.loadProgram("/main");
+        shaderProgramMain = ShaderUtils.loadProgram("/task1main");
         viewLocation = glGetUniformLocation(shaderProgramMain, "view");
         projectionLocation = glGetUniformLocation(shaderProgramMain, "projection");
         typeLocation = glGetUniformLocation(shaderProgramMain, "type");
@@ -102,16 +86,10 @@ public class Renderer extends AbstractRenderer {
         locTime = glGetUniformLocation(shaderProgramMain, "time");
         spotCutOffLoc = glGetUniformLocation(shaderProgramMain, "spotCutOff");
 
-        shaderProgramPost = ShaderUtils.loadProgram("/post");
+        shaderProgramPost = ShaderUtils.loadProgram("/task1post");
 
-        postTypeLocation = glGetUniformLocation(shaderProgramPost, "postType");
         locHeight = glGetUniformLocation(shaderProgramPost, "height");
-        locWidth = glGetUniformLocation(shaderProgramPost, "width");
-        shakeObjects = glGetUniformLocation(shaderProgramPost, "shake");
         locTimePostProc = glGetUniformLocation(shaderProgramPost, "time");
-        postProcEffectStrengthLoc = glGetUniformLocation(shaderProgramPost, "effectStrength");
-        postColorTypeLoc = glGetUniformLocation(shaderProgramPost, "postColorType");
-        postRedLineLoc = glGetUniformLocation(shaderProgramPost, "redLine");
 
         camera = new Camera()
                 .withPosition(new Vec3D(3, 3, 3))
@@ -148,7 +126,6 @@ public class Renderer extends AbstractRenderer {
         buffersPost = GridFactory.generateGridTriangleList(2, 2);
 
 
-        postProcEffectStrength = 1.0f;
         renderTarget = new OGLRenderTarget(1024, 1024);
 
         try {
@@ -156,8 +133,6 @@ public class Renderer extends AbstractRenderer {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-        postRedLine = width /2.0f;
 
         viewer = new OGLTexture2D.Viewer();
         textRenderer = new OGLTextRenderer(width, height);
@@ -225,11 +200,7 @@ public class Renderer extends AbstractRenderer {
 
         glUniform1f(typeLocation, type);
         glUniform1f(colorTypeLoc, colorType);
-        if (triangleStrip) {
-            buffersMain.draw(GL_TRIANGLE_STRIP, shaderProgramMain);
-        } else {
-            buffersMain.draw(GL_TRIANGLES, shaderProgramMain);
-        }
+        buffersDraw(buffersMain);
 
 
         lightMoveSpeed += 0.03;
@@ -247,11 +218,7 @@ public class Renderer extends AbstractRenderer {
         glUniform1f(colorTypeLoc, 8f);
 
         glUniformMatrix4fv(modelLocation, false, ToFloatArray.convert(yellowLightTransl));
-        if (triangleStrip) {
-            buffersMain.draw(GL_TRIANGLE_STRIP, shaderProgramMain);
-        } else {
-            buffersMain.draw(GL_TRIANGLES, shaderProgramMain);
-        }
+        buffersDraw(buffersMain);
 
 
         double redX = 2 * Math.sin(-lightMoveSpeed);
@@ -265,15 +232,17 @@ public class Renderer extends AbstractRenderer {
         glUniform1f(typeLocation, 8f);
         glUniform1f(colorTypeLoc, 9f);
         glUniformMatrix4fv(modelLocation, false, ToFloatArray.convert(redLightTransl));
+        buffersDraw(buffersMain);
+
+
+    }
+
+    private void buffersDraw(OGLBuffers buffers) {
         if (triangleStrip) {
-            buffersMain.draw(GL_TRIANGLE_STRIP, shaderProgramMain);
+            buffers.draw(GL_TRIANGLE_STRIP, shaderProgramMain);
         } else {
-            buffersMain.draw(GL_TRIANGLES, shaderProgramMain);
+            buffers.draw(GL_TRIANGLES, shaderProgramMain);
         }
-
-
-
-
     }
 
     private void renderPostProcessing() {
@@ -283,26 +252,10 @@ public class Renderer extends AbstractRenderer {
         glViewport(0, 0, width, height); // must reset back - render target is setting its own viewport
 
         renderTarget.getColorTexture().bind(shaderProgramPost, "textureRendered", 0);
-
+        buffersDraw(buffersPost);
         glUniform1f(locHeight, height);
-        glUniform1f(locWidth, width);
-        glUniform1f(postTypeLocation, postType);
-        glUniform1f(postColorTypeLoc, postColorType);
-
-        glUniform1f(postRedLineLoc, postRedLine);
-
         time += 0.01;
         glUniform1f(locTimePostProc, time);
-
-        glUniform1i(shakeObjects, shake);
-        glUniform1f(postProcEffectStrengthLoc, postProcEffectStrength);
-
-
-        if (triangleStrip) {
-            buffersPost.draw(GL_TRIANGLE_STRIP, shaderProgramMain);
-        } else {
-            buffersPost.draw(GL_TRIANGLES, shaderProgramMain);
-        }
 
     }
 
@@ -311,18 +264,8 @@ public class Renderer extends AbstractRenderer {
 
         @Override
         public void invoke(long window, double x, double y) {
-
             if (mousePressed) {
-                if(setKey == GLFW_KEY_LEFT_CONTROL && (setAction == GLFW_PRESS || setAction == GLFW_REPEAT)){
-                    if (button == GLFW_MOUSE_BUTTON_LEFT) {
-
-                      postRedLine = (float) x;
-                    }
-                    oldMx = x;
-
-                }else if (button == GLFW_MOUSE_BUTTON_LEFT) {
-
-
+                if (button == GLFW_MOUSE_BUTTON_LEFT) {
                     if (cameraType) {
                         camera = camera.addAzimuth(Math.PI / 2 * (oldMx - x) / width);
                         camera = camera.addZenith(Math.PI / 2 * (oldMy - y) / height);
@@ -350,9 +293,6 @@ public class Renderer extends AbstractRenderer {
                     oldMx = x;
                     oldMy = y;
 
-
-
-
                 }
 
 
@@ -375,19 +315,15 @@ public class Renderer extends AbstractRenderer {
     };
 
 
-
     private final GLFWKeyCallback setKeyFallback = new GLFWKeyCallback() {
         @Override
         public void invoke(long window, int key, int scancode, int action, int mods) {
-            setKey = key;
-            setAction = action;
             if (key == GLFW_KEY_ESCAPE && action == GLFW_RELEASE) {
                 // We will detect this in our rendering loop
                 glfwSetWindowShouldClose(window, true);
             }
 
             if (action == GLFW_PRESS || action == GLFW_REPEAT) {
-
                 switch (key) {
                     case GLFW_KEY_W:
                         if (cameraType) {
@@ -484,21 +420,8 @@ public class Renderer extends AbstractRenderer {
                         triangleStrip = true;
                         break;
 
-                    case GLFW_KEY_V:
-                        if (postColorType > 0) postColorType -= 1;
-                        break;
-
-                    case GLFW_KEY_B:
-                        if (postColorType < 4) postColorType += 1;
-                        break;
-
-
 
                 }
-
-
-
-
             }
         }
     };

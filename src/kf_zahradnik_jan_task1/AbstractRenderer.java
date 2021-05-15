@@ -1,4 +1,4 @@
-package kf_zahradnik_jan;
+package kf_zahradnik_jan_task1;
 //package lvl2advanced.p01gui.p01simple;
 
 import lwjglutils.OGLTextRenderer;

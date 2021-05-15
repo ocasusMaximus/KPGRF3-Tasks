@@ -4,26 +4,10 @@ in vec2 texCoord;
 uniform sampler2D textureRendered;
 uniform float height;
 uniform float width;
-uniform float effectStrength;
 uniform float postColorType;
 uniform float redLine;
 out vec4 outColor;
 
-//TODO: Dodelat typy effectu jeste nevim ani kolik jich bude
-//TODO: zkusit nejaky zajimavy effect
-//TODO: menit nejak silu toho effectu kdyz to pujde
-//TODO Optional: nejaka cara ktera oddeluje co je effect a co ne, nejlepe kdyby s ni slo pohybovat a menit tak dynamicky plochu effectu
-
-////
-//float drawLine() {
-//////    vec2 resolution = vec2(width,height);
-//////    vec2 uv = gl_FragCoord.xy / resolution.xy;
-//////
-//////    float a = abs(distance(p1, uv));
-//////    float b = abs(distance(p2, uv));
-////
-////    return mix(200.0, 0.0, redLine, height);
-//}
 
 
 void main() {
@@ -32,13 +16,15 @@ void main() {
 
 
     if (gl_FragCoord.x < redLine) {
-
+        /* b=g change*/
         if(postColorType == 0){
             outColor = textureColor.rbga;
         }
+        /*negativ*/
         if(postColorType == 1){
             outColor = 1 -textureColor;
         }
+        /* pixelization */
         if(postColorType == 2){
             float pixels = 2048.0;
             float pixel_w = 15.0;
@@ -51,6 +37,7 @@ void main() {
             outColor = texture(textureRendered, coord);
 
         }
+        /* gamma change */
         if(postColorType ==3){
             float gamma = 0.6;
             float numColors = 8.0;
@@ -91,18 +78,8 @@ void main() {
 
     } else {
 
-
             outColor = textureColor;
-
-
-
-
 
     }
 
-
-
-
-
-
-} 
+}

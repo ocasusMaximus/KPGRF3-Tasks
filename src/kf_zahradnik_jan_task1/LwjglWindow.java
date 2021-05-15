@@ -1,4 +1,4 @@
-package kf_zahradnik_jan;
+package kf_zahradnik_jan_task1;
 
 import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.glfw.GLFWVidMode;
