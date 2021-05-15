@@ -3,6 +3,8 @@
 <p align="center">This project is a school project for Computer Graphics 3 on University of Hradec Králové, Faculty of Informatics and Managment. It was made using GLSL. 
 Project contains two tasks.</p>
 
+[![LWJGL - 3.2.3](https://img.shields.io/badge/LWJGL-3.2.3-green?style=for-the-badge&logo=opengl)](https://https://www.lwjgl.org)
+
 ## Task 1
 Object modeling with ambient, diffuse, spectacular and spotlight lighting.
 ```
