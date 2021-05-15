@@ -1,5 +1,6 @@
-package kf_zahradnik_jan_task1;
+package kf_zahradnik_jan_task2;
 //package lvl2advanced.p01gui.p01simple;
+
 
 import lwjglutils.*;
 import org.lwjgl.glfw.*;
@@ -29,6 +30,9 @@ public class Renderer extends AbstractRenderer {
     private OGLTexture2D textureForObjects;
     private OGLBuffers buffersPost;
 
+
+    private int setKey;
+    private int setAction;
     private boolean mousePressed = false;
     private double oldMx, oldMy;
     private OGLRenderTarget renderTarget;
@@ -51,6 +55,7 @@ public class Renderer extends AbstractRenderer {
     Vec3D eyePosition;
     int locHeight;
     boolean polygonMode = true;
+
     private int locTimePostProc;
     private Mat4 yellowLightTransl;
     private double lightMoveSpeed;
@@ -60,6 +65,12 @@ public class Renderer extends AbstractRenderer {
     private int redLocLightPosition;
     private Mat4 redLightTransl;
     private boolean triangleStrip = false;
+
+    private float postColorType = 0;
+    private int locWidth;
+    private int postColorTypeLoc;
+    private int postRedLineLoc;
+    private float postRedLine;
 
 
     @Override
@@ -73,7 +84,7 @@ public class Renderer extends AbstractRenderer {
         glClearColor(0.211f, 0.211f, 0.211f, 1f);
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
-        shaderProgramMain = ShaderUtils.loadProgram("/task1/task1main");
+        shaderProgramMain = ShaderUtils.loadProgram("/task2/task2main");
         viewLocation = glGetUniformLocation(shaderProgramMain, "view");
         projectionLocation = glGetUniformLocation(shaderProgramMain, "projection");
         typeLocation = glGetUniformLocation(shaderProgramMain, "type");
@@ -86,10 +97,13 @@ public class Renderer extends AbstractRenderer {
         locTime = glGetUniformLocation(shaderProgramMain, "time");
         spotCutOffLoc = glGetUniformLocation(shaderProgramMain, "spotCutOff");
 
-        shaderProgramPost = ShaderUtils.loadProgram("/task1/task1post");
+        shaderProgramPost = ShaderUtils.loadProgram("/task2/task2post");
 
         locHeight = glGetUniformLocation(shaderProgramPost, "height");
+        locWidth = glGetUniformLocation(shaderProgramPost, "width");
         locTimePostProc = glGetUniformLocation(shaderProgramPost, "time");
+        postColorTypeLoc = glGetUniformLocation(shaderProgramPost, "postColorType");
+        postRedLineLoc = glGetUniformLocation(shaderProgramPost, "redLine");
 
         camera = new Camera()
                 .withPosition(new Vec3D(3, 3, 3))
@@ -134,6 +148,8 @@ public class Renderer extends AbstractRenderer {
             e.printStackTrace();
         }
 
+        postRedLine = width /2.0f;
+
         viewer = new OGLTexture2D.Viewer();
         textRenderer = new OGLTextRenderer(width, height);
         yellowLightTransl = new Mat4Transl(yellowLightPos);
@@ -159,12 +175,12 @@ public class Renderer extends AbstractRenderer {
         viewer.view(textureForObjects, -1, -1, 0.5);
         viewer.view(renderTarget.getColorTexture(), -1, -0.5, 0.5);
         viewer.view(renderTarget.getDepthTexture(), -1, 0, 0.5);
-        textRenderer.addStr2D(3, 15, "KPGRF3 TASK 1");
+        textRenderer.addStr2D(3, 15, "KPGRF3 TASK 2");
         textRenderer.addStr2D(3, 30, "JAN ZAHRADNÍK");
         textRenderer.addStr2D(3, 45, "FIM UHK 2021");
         textRenderer.addStr2D(width - 700, 15, "Controls: [WASD] Movement, [LMB] View rotation, [RMB] Model rotation, [MB4] Model translation, [O,P] Change models, [R] Reset");
         textRenderer.addStr2D(width - 700, 30, "[C] Change camera, [Q,E] Change projection, [K,L] Change color mode, [J] Change polygon mode, [F,G] Triangles/Triangle strips");
-        textRenderer.addStr2D(width - 700, 45, "[U,I] Change Spot cut off");
+        textRenderer.addStr2D(width - 700, 45, "[U,I] Change Spot cut off, [V,B] Change post effect, [LCTRL + LMB] Change area of post effect");
         textRenderer.addStr2D(width - 90, height - 3, " (c) PGRF UHK");
     }
 
@@ -252,10 +268,15 @@ public class Renderer extends AbstractRenderer {
         glViewport(0, 0, width, height); // must reset back - render target is setting its own viewport
 
         renderTarget.getColorTexture().bind(shaderProgramPost, "textureRendered", 0);
-        buffersDraw(buffersPost);
+
         glUniform1f(locHeight, height);
+        glUniform1f(locWidth, width);
+        glUniform1f(postColorTypeLoc, postColorType);
+        glUniform1f(postRedLineLoc, postRedLine);
+
         time += 0.01;
         glUniform1f(locTimePostProc, time);
+        buffersDraw(buffersPost);
 
     }
 
@@ -264,8 +285,17 @@ public class Renderer extends AbstractRenderer {
 
         @Override
         public void invoke(long window, double x, double y) {
+
             if (mousePressed) {
-                if (button == GLFW_MOUSE_BUTTON_LEFT) {
+                if(setKey == GLFW_KEY_LEFT_CONTROL && (setAction == GLFW_PRESS || setAction == GLFW_REPEAT)){
+                    if (button == GLFW_MOUSE_BUTTON_LEFT) {
+
+                      postRedLine = (float) x;
+                    }
+
+                }else if (button == GLFW_MOUSE_BUTTON_LEFT) {
+
+
                     if (cameraType) {
                         camera = camera.addAzimuth(Math.PI / 2 * (oldMx - x) / width);
                         camera = camera.addZenith(Math.PI / 2 * (oldMy - y) / height);
@@ -293,6 +323,9 @@ public class Renderer extends AbstractRenderer {
                     oldMx = x;
                     oldMy = y;
 
+
+
+
                 }
 
 
@@ -315,15 +348,19 @@ public class Renderer extends AbstractRenderer {
     };
 
 
+
     private final GLFWKeyCallback setKeyFallback = new GLFWKeyCallback() {
         @Override
         public void invoke(long window, int key, int scancode, int action, int mods) {
+            setKey = key;
+            setAction = action;
             if (key == GLFW_KEY_ESCAPE && action == GLFW_RELEASE) {
                 // We will detect this in our rendering loop
                 glfwSetWindowShouldClose(window, true);
             }
 
             if (action == GLFW_PRESS || action == GLFW_REPEAT) {
+
                 switch (key) {
                     case GLFW_KEY_W:
                         if (cameraType) {
@@ -420,8 +457,21 @@ public class Renderer extends AbstractRenderer {
                         triangleStrip = true;
                         break;
 
+                    case GLFW_KEY_V:
+                        if (postColorType > 0) postColorType -= 1;
+                        break;
+
+                    case GLFW_KEY_B:
+                        if (postColorType < 4) postColorType += 1;
+                        break;
+
+
 
                 }
+
+
+
+
             }
         }
     };
