@@ -2,11 +2,11 @@
 
 <p align="center">This project is a school project for Computer Graphics 3 on University of Hradec Králové, Faculty of Informatics and Managment. It was made using GLSL. 
 Project contains two tasks.</p>
-
+<div align="center">
 [![Java - 11.0.3](https://img.shields.io/badge/Java-11.0.3-informational?style=for-the-badge&logo=java)](https://www.java.com)
 [![LWJGL - 3.2.3](https://img.shields.io/badge/LWJGL-3.2.3-informational?style=for-the-badge&logo=opengl)](https://lwjgl.org)
 [![IntelliJ IDEA - 2020.3.2](https://img.shields.io/badge/IntelliJ_IDEA-2020.3.2-informational?style=for-the-badge&logo=IntelliJ+IDEA)](https://www.jetbrains.com/idea/)
-
+</div>
 ## Task 1
 Object modeling with ambient, diffuse, spectacular and spotlight lighting.
 ```
