@@ -13,12 +13,14 @@ Object modeling with ambient, diffuse, spectacular and spotlight lighting.
 All controls are described inside window
 ```
 
+
+![](pics/task1.gif)
 ## Task 2
 Post proccesing effects. Red line is moveable. Left side of it represents area with applied post processing effect and right side without any post processing effect.
 ```
 All controls are described inside window
 ```
-
+![](pics/task2.gif)
 ### Final info
 
 Project contains executable JAR files for both tasks.
