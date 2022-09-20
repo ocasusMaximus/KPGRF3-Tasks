@@ -28,4 +28,4 @@ Project contains executable JAR files for both tasks.
 
 ### Authors
 
-* **John Gardener** - *Whole project* - [ocasusMaximus](https://github.com/ocasusMaximus)
+* **Jan Zahradník** - *Whole project* - [zahradjan](https://github.com/zahradjan)
